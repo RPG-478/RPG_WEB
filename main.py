@@ -1,7 +1,10 @@
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
+from routes import status
 
 app = FastAPI()
+
+app.include_router(status.router)
 
 @app.get("/", response_class=HTMLResponse)
 async def root():

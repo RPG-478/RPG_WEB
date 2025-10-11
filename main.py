@@ -2,10 +2,11 @@ from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 from routes import status, trade
 
+app = FastAPI()
+
 app.include_router(status.router)
 app.include_router(trade.router)
 
-app = FastAPI()
 
 app.include_router(status.router)
 

@@ -2,12 +2,14 @@ import json
 from typing import Any
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse, JSONResponse
+from routes import status, trade 
 
-from routes import status, trade
-
-# 日本語文字化け対策のためのカスタムレスポンスクラスを定義
+# 1. 日本語文字化け対策のためのカスタムレスポンスクラスを定義
 # JSONResponseを継承し、日本語がエスケープされないようにする
 class UTF8JSONResponse(JSONResponse):
+    # ヘッダーに charset=utf-8 を強制的に追加する行
+    media_type = "application/json; charset=utf-8"
+
     def render(self, content: Any) -> bytes:
         # ensure_ascii=False で日本語をそのまま出力し、UTF-8でエンコード
         return json.dumps(
@@ -18,7 +20,7 @@ class UTF8JSONResponse(JSONResponse):
         ).encode("utf-8")
 
 
-# FastAPIの初期化
+# 2. FastAPIの初期化
 # JSONを返すAPIには、このカスタムレスポンスをデフォルトで適用する
 app = FastAPI(
     title="RPG BOT Web",
@@ -28,13 +30,12 @@ app = FastAPI(
 )
 
 # ルートパスの定義 (HTMLResponseを使用)
-# ルートパスは、HTMLResponseを使用
+# ルートパスはHTMLResponseを使用
 @app.get("/", response_class=HTMLResponse)
 async def root():
     return "<h1>RPG BOT Web — 起動成功</h1><p>SupabaseとBOT接続準備中...</p>"
 
-
-# ルーターの組み込み
+# 4. ルーターの組み込み
 # /status や /trade のルートは、デフォルト設定（UTF8JSONResponse）が適用
 app.include_router(status.router)
 app.include_router(trade.router)

@@ -7,7 +7,7 @@ router = APIRouter()
 @router.get("/status")
 async def get_status(user_id: str = Query(..., description="ユーザーのDiscord ID")):
     try:
-        response = supabase.table("players").select("*").eq("id", user_id).execute()
+        response = supabase.table("players").select("*").eq("user_id", user_id).execute()
         data = response.data
         if not data:
             return {"error": "ユーザーが見つかりません"}

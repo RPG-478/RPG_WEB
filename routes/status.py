@@ -1,6 +1,6 @@
 # routes/status.py
 from fastapi import APIRouter, Query
-from db import supabase
+from supabase_client import supabase
 
 router = APIRouter()
 

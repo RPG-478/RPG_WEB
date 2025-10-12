@@ -3,7 +3,7 @@ from fastapi import Request, HTTPException
 from jose import jwt, JWTError
 import os
 
-SECRET_KEY = os.getenv("SECRET_KEY", "supersecret")  # 環境変数にしておく
+SECRET_KEY = os.getenv("JWT_SECRET_KEY")
 
 def get_current_user(request: Request):
     token = request.cookies.get("session_token") 

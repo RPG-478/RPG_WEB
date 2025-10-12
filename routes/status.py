@@ -1,20 +1,25 @@
 # routes/status.py
+
 from fastapi import APIRouter, Depends
-from fastapi.responses import HTMLResponse
-from auth import get_current_user   # ルート直下に auth.py がある前提
+from fastapi.responses import HTMLResponse, JSONResponse # ★ JSONResponse をインポート
+from auth import get_current_user   
 
 router = APIRouter()
 
 @router.get("/status")
 async def get_user_status(discord_id: str = Depends(get_current_user)):
     """ログインユーザーのステータスを取得"""
-    # default_response_class が UTF8JSONResponse に設定されていれば、
-    # そのまま dict を返すだけで日本語が化けない
-    return {
-        "status": "success",
-        "message": "ログイン済みです",
-        "discord_id": discord_id
-    }
+    
+    # ★ 修正: dictを直接返す代わりに、明示的に JSONResponse オブジェクトを返す
+    return JSONResponse(
+        content={
+            "status": "success",
+            # ★ 日本語メッセージもここに含める
+            "message": "ログイン済みです", 
+            "discord_id": discord_id
+        },
+        # ここでは status_code=200 はデフォルトなので省略可
+    )
 
 
 @router.get("/dashboard", response_class=HTMLResponse)

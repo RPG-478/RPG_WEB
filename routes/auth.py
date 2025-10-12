@@ -87,12 +87,12 @@ async def callback(code: str):
     user_resp.raise_for_status() 
     user_data = user_resp.json()
     
-token = jwt.encode({"discord_id": user_data["id"]}, SECRET_KEY, algorithm=ALGORITHM)
+    token = jwt.encode({"discord_id": user_data["id"]}, SECRET_KEY, algorithm=ALGORITHM)
     
-response = RedirectResponse(url="/dashboard", status_code=302)
+    response = RedirectResponse(url="/dashboard", status_code=302)
 
 # secure=True と samesite="none" の追加
-response.set_cookie(
+    response.set_cookie(
         key="session_token",
         value=token,
         httponly=True,

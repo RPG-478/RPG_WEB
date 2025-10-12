@@ -93,12 +93,12 @@ response = RedirectResponse(url="/dashboard", status_code=302)
 
 # secure=True と samesite="none" の追加
 response.set_cookie(
-    key="session_token",
-    value=token,
-    httponly=True,
-    secure=True,
-    samesite="none",
-    path="/"
+        key="session_token",
+        value=token,
+        httponly=True,
+        secure=True,
+        samesite="none",
+        path="/"
     )
     return response
 

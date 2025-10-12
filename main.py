@@ -2,7 +2,7 @@ import json
 from typing import Any
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse, JSONResponse
-from routes import status, trade 
+from routes import status, trade, auth
 
 # 1. 日本語文字化け対策のためのカスタムレスポンスクラスを定義
 # JSONResponseを継承し、日本語がエスケープされないようにする
@@ -39,3 +39,4 @@ async def root():
 # /status や /trade のルートは、デフォルト設定（UTF8JSONResponse）が適用
 app.include_router(status.router)
 app.include_router(trade.router)
+app.include_router(auth.router)

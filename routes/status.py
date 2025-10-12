@@ -11,18 +11,24 @@ router = APIRouter()
 async def get_user_status(discord_id: str = Depends(get_current_user)):
     """ログインユーザーのステータスを取得"""
     
-    # ★ ログインしていない場合:
-    # get_current_userがHTTPExceptionを発生させるため、この関数は実行されず、
-    # 401エラーが返る。
-
-    # ★ ログイン済みの場合:
-    # Supabaseからユーザーデータを取得する処理をここに追加
-    # 例: player_data = await supabase_client.get_player_data(discord_id)
-
-    # 応答
     return JSONResponse({
         "status": "success",
-        "message": "ログイン済みです", # ★ 文字化け回避のため日本語はJSONResponseで
+        "message": "ログイン済みです", # 文字化け回避のため日本語はJSONResponseで
         "discord_id": discord_id
         # "player_data": player_data 
     })
+
+from fastapi.responses import HTMLResponse
+
+@router.get("/dashboard", response_class=HTMLResponse)
+async def dashboard(discord_id: str = Depends(get_current_user)):
+    """ユーザーがログイン後に到達するページ"""
+    
+    # ログインしていない場合は get_current_user によって401
+
+    return f"""
+    <h1>ダッシュボードへようこそ！</h1>
+    <p>あなたのDiscord ID: {discord_id}</p>
+    <p><a href="/auth/logout">ログアウト</a></p>
+    <p><a href="/status">ステータス確認API</a></p>
+    """

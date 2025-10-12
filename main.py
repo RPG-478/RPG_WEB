@@ -8,9 +8,7 @@ from routes import status, trade, auth
 
 app = FastAPI(
     title="RPG BOT Web",
-    version="1.0.0",
-    # 日本語対応のJSONResponseをデフォルトに
-    default_response_class=UTF8JSONResponse 
+    version="1.0.0", 
 )
 
 # ルートパスの定義 (HTMLResponseを使用)

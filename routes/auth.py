@@ -90,10 +90,16 @@ async def callback(code: str):
     # 3. JWT発行
     token = jwt.encode({"discord_id": user_data["id"]}, SECRET_KEY, algorithm=ALGORITHM)
     
-    # 4. Cookieに保存して /dashboard へリダイレクト
-    response = RedirectResponse(url="/dashboard", status_code=302)
-    response.set_cookie(key="session_token", value=token, httponly=True)
-    return response
+# Cookie発行部分を修正
+response = RedirectResponse(url="/dashboard", status_code=302)
+response.set_cookie(
+    key="session_token",
+    value=token,
+    httponly=True,
+    secure=True,             # ← HTTPS限定でCookie送信
+    samesite="none"          # ← クロスサイトでも送信されるように
+)
+return response
 
 
 @router.get("/logout")

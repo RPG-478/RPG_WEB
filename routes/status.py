@@ -1,33 +1,23 @@
-# routes/status.py （新規作成または修正）
-
-from fastapi import APIRouter, Depends, status
-from fastapi.responses import JSONResponse
-# utils/auth.py から認証ガード関数をインポート
+# routes/status.py
+from fastapi import APIRouter, Depends
+from fastapi.responses import HTMLResponse
 import auth
-
-get_current_user = auth.get_current_user
 
 router = APIRouter()
 
 @router.get("/status")
 async def get_user_status(discord_id: str = Depends(get_current_user)):
     """ログインユーザーのステータスを取得"""
-    
-    return JSONResponse({
+    return {
         "status": "success",
-        "message": "ログイン済みです", # 文字化け回避のため日本語はJSONResponseで
+        "message": "ログイン済みです",
         "discord_id": discord_id
-        # "player_data": player_data 
-    })
+    }
 
-from fastapi.responses import HTMLResponse
 
 @router.get("/dashboard", response_class=HTMLResponse)
 async def dashboard(discord_id: str = Depends(get_current_user)):
     """ユーザーがログイン後に到達するページ"""
-    
-    # ログインしていない場合は get_current_user によって401
-
     return f"""
     <h1>ダッシュボードへようこそ！</h1>
     <p>あなたのDiscord ID: {discord_id}</p>

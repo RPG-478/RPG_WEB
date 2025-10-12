@@ -1,61 +1,75 @@
 # routes/auth.py
 import os
 import requests
-from fastapi import APIRouter, Request
+from jose import jwt
+from fastapi import APIRouter
 from fastapi.responses import RedirectResponse, JSONResponse
 
 router = APIRouter()
 
-CLIENT_ID = os.getenv("DISCORD_CLIENT_ID")
-CLIENT_SECRET = os.getenv("DISCORD_CLIENT_SECRET")
-REDIRECT_URI = os.getenv("DISCORD_REDIRECT_URI")
-
-# DiscordのOAuth2認可エンドポイント
-DISCORD_API = "https://discord.com/api"
+DISCORD_CLIENT_ID = os.getenv("DISCORD_CLIENT_ID")
+DISCORD_CLIENT_SECRET = os.getenv("DISCORD_CLIENT_SECRET")
+REDIRECT_URI = os.getenv("DISCORD_REDIRECT_URI")  # 例: https://rpg-web.onrender.com/callback
+SECRET_KEY = os.getenv("JWT_SECRET_KEY", "supersecretkey")
+ALGORITHM = "HS256"
 
 @router.get("/login")
 async def login():
-    """Discordログインページにリダイレクト"""
-    return RedirectResponse(
-        f"{DISCORD_API}/oauth2/authorize?client_id={CLIENT_ID}"
+    """Discord OAuth2認証ページへリダイレクト"""
+    auth_url = (
+        f"https://discord.com/api/oauth2/authorize"
+        f"?client_id={DISCORD_CLIENT_ID}"
         f"&redirect_uri={REDIRECT_URI}"
-        f"&response_type=code&scope=identify"
+        f"&response_type=code"
+        f"&scope=identify"
     )
+    return RedirectResponse(auth_url)
 
 @router.get("/callback")
-async def callback(request: Request):
+async def callback(code: str):
     """Discord OAuth2 コールバック"""
-    code = request.query_params.get("code")
-    if not code:
-        return JSONResponse({"error": "コードがありません"})
-
-    # アクセストークン取得
-    data = {
-        "client_id": CLIENT_ID,
-        "client_secret": CLIENT_SECRET,
+    token_data = {
+        "client_id": DISCORD_CLIENT_ID,
+        "client_secret": DISCORD_CLIENT_SECRET,
         "grant_type": "authorization_code",
         "code": code,
         "redirect_uri": REDIRECT_URI,
-        "scope": "identify"
+        "scope": "identify",
     }
     headers = {"Content-Type": "application/x-www-form-urlencoded"}
-    token_resp = requests.post(f"{DISCORD_API}/oauth2/token", data=data, headers=headers)
-    token_data = token_resp.json()
 
-    if "access_token" not in token_data:
-        return JSONResponse({"error": "トークン取得失敗", "details": token_data})
+    # アクセストークン取得
+    token_resp = requests.post("https://discord.com/api/oauth2/token", data=token_data, headers=headers)
+    token_resp.raise_for_status()
+    access_token = token_resp.json().get("access_token")
 
-    access_token = token_data["access_token"]
-
-    # Discordユーザー情報を取得
+    # Discordユーザー情報取得
     user_resp = requests.get(
-        f"{DISCORD_API}/users/@me",
+        "https://discord.com/api/users/@me",
         headers={"Authorization": f"Bearer {access_token}"}
     )
     user_data = user_resp.json()
 
-    # テスト段階では結果をそのまま返す
-    return JSONResponse({
-        "status": "success",
-        "user": user_data
-    })
+    # JWT発行してCookieに保存
+    token = jwt.encode({"discord_id": user_data["id"]}, SECRET_KEY, algorithm=ALGORITHM)
+    response = RedirectResponse(url="/dashboard")
+    response.set_cookie(key="token", value=token, httponly=True)
+    return response
+
+@router.get("/logout")
+async def logout():
+    """ログアウト（Cookie削除）"""
+    response = RedirectResponse(url="/")
+    response.delete_cookie("token")
+    return response
+
+@router.get("/me")
+async def me(token: str = None):
+    """Cookie内のJWTを確認（デバッグ用）"""
+    if not token:
+        return JSONResponse({"error": "ログインしていません"})
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        return {"status": "success", "discord_id": payload["discord_id"]}
+    except Exception:
+        return {"error": "無効なトークンです"}

@@ -10,15 +10,12 @@ router = APIRouter()
 async def get_user_status(discord_id: str = Depends(get_current_user)):
     """ログインユーザーのステータスを取得"""
     
-    # ★ 修正: dictを直接返す代わりに、明示的に JSONResponse オブジェクトを返す
     return JSONResponse(
         content={
             "status": "success",
-            # ★ 日本語メッセージもここに含める
             "message": "ログイン済みです", 
             "discord_id": discord_id
         },
-        # ここでは status_code=200 はデフォルトなので省略可
     )
 
 

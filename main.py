@@ -1,3 +1,4 @@
+# main.py
 import json
 from typing import Any
 from fastapi import FastAPI
@@ -12,6 +13,8 @@ class UTF8JSONResponse(JSONResponse):
 
     def render(self, content: Any) -> bytes:
         # ensure_ascii=False で日本語をそのまま出力し、UTF-8でエンコード
+        # indent=None, separators=(",", ":") はデフォルト動作なので省略可能ですが、
+        # あえて残して日本語対策を強調します
         return json.dumps(
             content,
             ensure_ascii=False,  
@@ -30,15 +33,12 @@ app = FastAPI(
 )
 
 # ルートパスの定義 (HTMLResponseを使用)
-# ルートパスはHTMLResponseを使用
 @app.get("/", response_class=HTMLResponse)
 async def root():
     return "<h1>RPG BOT Web — 起動成功</h1><p>SupabaseとBOT接続準備中...</p>"
 
 # 4. ルーターの組み込み
 # /status や /trade のルートは、デフォルト設定（UTF8JSONResponse）が適用
-app.include_router(status.router)
-app.include_router(trade.router)
-app.include_router(auth.router)
-
+app.include_router(status.router, tags=["status"]) 
+app.include_router(trade.router, tags=["trade"])   # tagsを追加してAPIを見やすく
 app.include_router(auth.router, prefix="/auth", tags=["auth"])

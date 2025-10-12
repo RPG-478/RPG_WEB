@@ -99,7 +99,7 @@ response.set_cookie(
     secure=True,
     samesite="none",
     path="/"
-)
+    )
 return response
 
 

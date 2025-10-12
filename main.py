@@ -40,3 +40,5 @@ async def root():
 app.include_router(status.router)
 app.include_router(trade.router)
 app.include_router(auth.router)
+
+app.include_router(auth.router, prefix="/auth", tags=["auth"])

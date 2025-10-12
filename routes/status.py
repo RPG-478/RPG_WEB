@@ -3,7 +3,9 @@
 from fastapi import APIRouter, Depends, status
 from fastapi.responses import JSONResponse
 # utils/auth.py から認証ガード関数をインポート
-from utils.auth import get_current_user 
+import auth
+
+get_current_user = auth.get_current_user
 
 router = APIRouter()
 

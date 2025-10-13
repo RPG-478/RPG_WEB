@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
-from fastapi.responses import JSONResponse
-from auth import get_current_user   
+from fastapi.responses import HTMLResponse, JSONResponse
+from auth import get_current_user 
 
 router = APIRouter()
 

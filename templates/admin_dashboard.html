@@ -20,6 +20,24 @@
     </nav>
 
     <div class="container mt-4">
+        <!-- ID検索フォーム -->
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">🔍 Discord ID 検索</h5>
+            </div>
+            <div class="card-body">
+                <form id="searchForm" class="row g-3">
+                    <div class="col-md-8">
+                        <input type="text" class="form-control" id="searchInput" placeholder="Discord IDを入力 (例: 1301416493401243694)">
+                    </div>
+                    <div class="col-md-4">
+                        <button type="submit" class="btn btn-primary w-100">検索</button>
+                    </div>
+                </form>
+                <div id="searchResult" class="mt-3"></div>
+            </div>
+        </div>
+
         <h2>プレイヤー管理</h2>
         
         <div class="card mb-4">
@@ -118,45 +136,104 @@
     </div>
 
     <script>
+        // ID検索機能
+        document.getElementById('searchForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const discordId = document.getElementById('searchInput').value.trim();
+            const resultDiv = document.getElementById('searchResult');
+            
+            if (!discordId) {
+                resultDiv.innerHTML = '<div class="alert alert-warning">Discord IDを入力してください</div>';
+                return;
+            }
+            
+            resultDiv.innerHTML = '<div class="spinner-border text-primary" role="status"></div>';
+            
+            try {
+                window.location.href = `/admin/player/${discordId}`;
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="alert alert-danger">エラー: ${error.message}</div>`;
+            }
+        });
+
         async function banBot(discordId) {
             if (!confirm(`Discord ID ${discordId} をBOT利用禁止にしますか?`)) return;
             
-            const response = await fetch(`/admin/ban-bot/${discordId}`, { method: 'POST' });
-            const data = await response.json();
-            alert(data.message);
-            location.reload();
+            try {
+                const response = await fetch(`/admin/ban-bot/${discordId}`, { 
+                    method: 'POST',
+                    credentials: 'include'
+                });
+                const data = await response.json();
+                alert(data.message);
+                location.reload();
+            } catch (error) {
+                alert('エラーが発生しました: ' + error.message);
+            }
         }
 
         async function banWeb(discordId) {
             if (!confirm(`Discord ID ${discordId} をWeb利用禁止にしますか?`)) return;
             
-            const response = await fetch(`/admin/ban-web/${discordId}`, { method: 'POST' });
-            const data = await response.json();
-            alert(data.message);
-            location.reload();
+            try {
+                const response = await fetch(`/admin/ban-web/${discordId}`, { 
+                    method: 'POST',
+                    credentials: 'include'
+                });
+                const data = await response.json();
+                alert(data.message);
+                location.reload();
+            } catch (error) {
+                alert('エラーが発生しました: ' + error.message);
+            }
         }
 
         async function unbanBot(discordId) {
-            const response = await fetch(`/admin/unban-bot/${discordId}`, { method: 'POST' });
-            const data = await response.json();
-            alert(data.message);
-            location.reload();
+            if (!confirm(`Discord ID ${discordId} のBOT利用禁止を解除しますか?`)) return;
+            
+            try {
+                const response = await fetch(`/admin/unban-bot/${discordId}`, { 
+                    method: 'POST',
+                    credentials: 'include'
+                });
+                const data = await response.json();
+                alert(data.message);
+                location.reload();
+            } catch (error) {
+                alert('エラーが発生しました: ' + error.message);
+            }
         }
 
         async function unbanWeb(discordId) {
-            const response = await fetch(`/admin/unban-web/${discordId}`, { method: 'POST' });
-            const data = await response.json();
-            alert(data.message);
-            location.reload();
+            if (!confirm(`Discord ID ${discordId} のWeb利用禁止を解除しますか?`)) return;
+            
+            try {
+                const response = await fetch(`/admin/unban-web/${discordId}`, { 
+                    method: 'POST',
+                    credentials: 'include'
+                });
+                const data = await response.json();
+                alert(data.message);
+                location.reload();
+            } catch (error) {
+                alert('エラーが発生しました: ' + error.message);
+            }
         }
 
         async function cancelTrade(tradeId) {
             if (!confirm(`トレード ID ${tradeId} を強制キャンセルしますか?`)) return;
             
-            const response = await fetch(`/admin/cancel-trade/${tradeId}`, { method: 'POST' });
-            const data = await response.json();
-            alert(data.message);
-            location.reload();
+            try {
+                const response = await fetch(`/admin/cancel-trade/${tradeId}`, { 
+                    method: 'POST',
+                    credentials: 'include'
+                });
+                const data = await response.json();
+                alert(data.message);
+                location.reload();
+            } catch (error) {
+                alert('エラーが発生しました: ' + error.message);
+            }
         }
     </script>
 </body>

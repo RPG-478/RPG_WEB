@@ -9,7 +9,7 @@ from fastapi.templating import Jinja2Templates
 from starlette.middleware.sessions import SessionMiddleware  # ← 追加!
 import os  # ← 追加!
 
-from routes import status, trade, auth, legal
+from routes import status, trade, auth, legal, admin  
 
 class UTF8JSONResponse(JSONResponse):
     media_type = "application/json; charset=utf-8"
@@ -103,3 +103,6 @@ async def periodic_cleanup():
 @app.on_event("startup")
 async def start_periodic_tasks():
     asyncio.create_task(periodic_cleanup())
+    
+
+app.include_router(admin.router, tags=["admin"])

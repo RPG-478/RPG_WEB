@@ -6,8 +6,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from routes import legal
-from routes import status, trade, auth
+from starlette.middleware.sessions import SessionMiddleware  # ← 追加!
+import os  # ← 追加!
+
+from routes import status, trade, auth, legal
 
 class UTF8JSONResponse(JSONResponse):
     media_type = "application/json; charset=utf-8"
@@ -28,6 +30,12 @@ app = FastAPI(
 templates = Jinja2Templates(directory="templates")
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
+# SessionMiddleware を追加 ← これを追加!
+app.add_middleware(
+    SessionMiddleware,
+    secret_key=os.getenv("SESSION_SECRET", "your-secret-key-here-change-in-production")
+)
+
 @app.get("/", response_class=HTMLResponse)
 async def root():
     return """
@@ -43,10 +51,10 @@ async def root():
         <div class="container mt-5">
             <div class="text-center">
                 <h1 class="display-4">RPG BOT Web</h1>
-                <p class="lead">Discord RPGã²ã¼ã ã®Webç®¡çã·ã¹ãã </p>
+                <p class="lead">Discord RPGゲームのWeb管理システム</p>
                 <hr class="my-4">
-                <p>Supabaseé£æºæºåå®äºãDiscord OAuthã§ã­ã°ã¤ã³ãã¦ãã ããã</p>
-                <a href="/auth/login" class="btn btn-primary btn-lg">Discordã§ã­ã°ã¤ã³</a>
+                <p>Supabase連携準備完了。Discord OAuthでログインしてください。</p>
+                <a href="/auth/login" class="btn btn-primary btn-lg">Discordでログイン</a>
             </div>
         </div>
     </body>
@@ -56,6 +64,7 @@ async def root():
 app.include_router(auth.router, prefix="/auth", tags=["auth"])
 app.include_router(status.router, tags=["status"])
 app.include_router(trade.router, tags=["trade"])
+app.include_router(legal.router, tags=["legal"])
 
 app.add_middleware(GZipMiddleware)
 app.add_middleware(
@@ -75,7 +84,7 @@ async def force_json_headers(request, call_next):
             del response.headers["content-disposition"]
     return response
     
-from fastapi import FastAPI, BackgroundTasks
+from fastapi import BackgroundTasks
 import supabase_client
 
 @app.on_event("startup")
@@ -94,6 +103,3 @@ async def periodic_cleanup():
 @app.on_event("startup")
 async def start_periodic_tasks():
     asyncio.create_task(periodic_cleanup())
-
-
-app.include_router(legal.router)

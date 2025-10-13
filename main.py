@@ -3,6 +3,8 @@ from typing import Any
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse, JSONResponse
 from routes import status, trade, auth
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 
 class UTF8JSONResponse(JSONResponse):
     media_type = "application/json; charset=utf-8"
@@ -13,12 +15,11 @@ class UTF8JSONResponse(JSONResponse):
             ensure_ascii=False,  # ← 日本語そのまま出力
             separators=(",", ":")
         ).encode("utf-8")
-# ---------------------
 
 app = FastAPI(
     title="RPG BOT Web",
     version="1.0.0",
-    default_response_class=UTF8JSONResponse  # ← 全APIのデフォルトに指定
+    default_response_class=UTF8JSONResponse
 )
 
 @app.get("/", response_class=HTMLResponse)
@@ -29,3 +30,23 @@ async def root():
 app.include_router(status.router, tags=["status"])
 app.include_router(trade.router, tags=["trade"])
 app.include_router(auth.router, prefix="/auth", tags=["auth"])
+
+
+# 圧縮とCORS許可（Render対策のおまけ）
+app.add_middleware(GZipMiddleware)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Renderが勝手にJSONをダウンロード扱いするのを修正
+@app.middleware("http")
+async def force_json_headers(request, call_next):
+    response = await call_next(request)
+    if response.headers.get("content-type", "").startswith("application/json"):
+        response.headers["Content-Type"] = "application/json; charset=utf-8"
+        response.headers.pop("content-disposition", None)
+    return response

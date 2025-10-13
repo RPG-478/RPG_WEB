@@ -107,6 +107,24 @@ async def admin_dashboard(request: Request, session_token: str = Cookie(None)):
     players_data = supabase_client.supabase.table("players").select("*").execute()
     players = players_data.data if players_data.data else []
     
+    # ========== デバッグログ追加 ==========
+    print(f"========== デバッグ開始 ==========")
+    print(f"プレイヤー数: {len(players)}")
+    
+    if players:
+        print(f"最初のプレイヤー: {players[0]}")
+        print(f"カラム名一覧: {list(players[0].keys())}")
+        
+        # user_id と discord_id の確認
+        first_player = players[0]
+        print(f"user_id の値: {first_player.get('user_id')}")
+        print(f"discord_id の値: {first_player.get('discord_id')}")
+    else:
+        print("プレイヤーデータが0件です")
+    
+    print(f"========== デバッグ終了 ==========")
+    # =====================================
+    
     # 進行中のトレード取得
     trades_data = supabase_client.supabase.table("trades").select("*").eq("status", "pending").execute()
     trades = trades_data.data if trades_data.data else []

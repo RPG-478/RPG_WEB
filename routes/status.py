@@ -51,4 +51,3 @@ async def dashboard(request: Request, discord_id: str = Depends(get_current_user
         "equipped_weapon": equipped.get("weapon", "なし"),
         "equipped_armor": equipped.get("armor", "なし")
     })
-fastapi import APIRouter, Depends

@@ -204,3 +204,5 @@ def get_storage_items(user_id, include_taken=False):
     except Exception as e:
         print(f"Error getting storage items: {e}")
         return []
+        
+_get_client()

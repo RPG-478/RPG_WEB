@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RPG BOT - ホーム</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .hero-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 80px 0;
+            text-align: center;
+        }
+        .feature-card {
+            transition: transform 0.3s;
+            height: 100%;
+        }
+        .feature-card:hover {
+            transform: translateY(-5px);
+        }
+        .code-block {
+            background-color: #2d2d2d;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+        }
+    </style>
+</head>
+<body>
+    <!-- ヒーローセクション -->
+    <div class="hero-section">
+        <div class="container">
+            <h1 class="display-3 fw-bold mb-4">🎮 Discord RPG BOT</h1>
+            <p class="lead mb-5">Discordで遊べるテキストベースRPG + Web管理システム</p>
+            
+            <div class="d-flex gap-3 justify-content-center flex-wrap">
+                <a href="https://discord.com/api/oauth2/authorize?client_id=1423518851462856755&permissions=8&scope=bot" target="_blank" class="btn btn-light btn-lg">
+                    🤖 BOTを招待する
+                </a>
+                <a href="/auth/login" class="btn btn-outline-light btn-lg">
+                    🌐 Webにログイン
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- 機能紹介 -->
+    <div class="container my-5">
+        <h2 class="text-center mb-5">✨ 主な機能</h2>
+        
+        <div class="row g-4">
+            <!-- BOT機能 -->
+            <div class="col-md-6">
+                <div class="card feature-card shadow">
+                    <div class="card-body">
+                        <h3 class="card-title">🤖 Discord BOT</h3>
+                        <ul class="list-unstyled mt-3">
+                            <li class="mb-2">⚔️ ダンジョン探索RPG</li>
+                            <li class="mb-2">👾 ターン制バトルシステム</li>
+                            <li class="mb-2">🎒 アイテム・装備システム</li>
+                            <li class="mb-2">🤝 プレイヤー間トレード</li>
+                            <li class="mb-2">📖 ストーリーイベント</li>
+                            <li class="mb-2">🔄 ループシステム</li>
+                        </ul>
+                        
+                        <h5 class="mt-4">📝 基本コマンド</h5>
+                        <div class="code-block">
+                            <div class="mb-2">!start - ゲーム開始</div>
+                            <div class="mb-2">!move - 前進</div>
+                            <div class="mb-2">!status - ステータス確認</div>
+                            <div class="mb-2">!inventory - 所持品確認</div>
+                            <div>!reset - データリセット</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Web機能 -->
+            <div class="col-md-6">
+                <div class="card feature-card shadow">
+                    <div class="card-body">
+                        <h3 class="card-title">🌐 Web管理画面</h3>
+                        <ul class="list-unstyled mt-3">
+                            <li class="mb-2">📊 プレイヤーダッシュボード</li>
+                            <li class="mb-2">📜 トレード履歴確認</li>
+                            <li class="mb-2">📦 倉庫システム</li>
+                            <li class="mb-2">🔐 Discord OAuth2認証</li>
+                            <li class="mb-2">🛡️ 管理者機能(BAN管理)</li>
+                            <li class="mb-2">🔄 24時間トレード保留</li>
+                        </ul>
+                        
+                        <h5 class="mt-4">🚀 使い方</h5>
+                        <div class="bg-light p-3 rounded">
+                            <div class="mb-2">1. 「Webにログイン」をクリック</div>
+                            <div class="mb-2">2. Discordアカウントで認証</div>
+                            <div>3. ダッシュボードにアクセス</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 遊び方ガイド -->
+    <div class="bg-light py-5">
+        <div class="container">
+            <h2 class="text-center mb-5">📚 遊び方ガイド</h2>
+            
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-body text-center">
+                            <div class="display-4 mb-3">1️⃣</div>
+                            <h5 class="card-title">BOTを招待</h5>
+                            <p class="card-text">「BOTを招待する」ボタンからあなたのDiscordサーバーにBOTを追加</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-body text-center">
+                            <div class="display-4 mb-3">2️⃣</div>
+                            <h5 class="card-title">ゲーム開始</h5>
+                            <p class="card-text">Discordで <code>!start</code> コマンドを実行して冒険を開始</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-body text-center">
+                            <div class="display-4 mb-3">3️⃣</div>
+                            <h5 class="card-title">Web管理</h5>
+                            <p class="card-text">Webにログインしてトレードや倉庫を管理</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- システム情報 -->
+    <div class="container my-5">
+        <h2 class="text-center mb-5">⚙️ システム情報</h2>
+        
+        <div class="row">
+            <div class="col-md-6 mx-auto">
+                <div class="card shadow">
+                    <div class="card-body">
+                        <h5 class="card-title mb-3">🎮 ゲームシステム</h5>
+                        <ul class="list-unstyled">
+                            <li class="mb-2">📏 <strong>ダンジョン:</strong> 10,000m (100階層)</li>
+                            <li class="mb-2">👹 <strong>ボス戦:</strong> 1,000m毎に出現</li>
+                            <li class="mb-2">💀 <strong>死亡時:</strong> ループシステム</li>
+                            <li class="mb-2">🎁 <strong>イベント:</strong> ランダム発生</li>
+                            <li class="mb-2">🤝 <strong>トレード:</strong> 24時間保留システム</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 招待セクション -->
+    <div class="bg-primary text-white py-5">
+        <div class="container text-center">
+            <h2 class="mb-4">今すぐ始めよう! 🎉</h2>
+            <p class="lead mb-4">無料で遊べるDiscord RPG BOT</p>
+            <div class="d-flex gap-3 justify-content-center flex-wrap">
+                <a href="https://discord.com/api/oauth2/authorize?client_id=1423518851462856755&permissions=8&scope=bot" target="_blank" class="btn btn-light btn-lg">
+                    🤖 BOTを招待する
+                </a>
+                <a href="/auth/login" class="btn btn-outline-light btn-lg">
+                    🌐 Webにログイン
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- フッター -->
+    <footer class="bg-dark text-white text-center py-4 mt-5">
+        <div class="container">
+            <p class="mb-2">Discord RPG BOT © 2025</p>
+            <div class="d-flex gap-3 justify-content-center">
+                <a href="/terms" class="text-white text-decoration-none">利用規約(Web)</a>
+                <span class="text-white">|</span>
+                <a href="/bot-terms" class="text-white text-decoration-none">利用規約(BOT)</a>
+                <span class="text-white">|</span>
+                <a href="/privacy" class="text-white text-decoration-none">プライバシーポリシー</a>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

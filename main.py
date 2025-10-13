@@ -94,3 +94,9 @@ async def periodic_cleanup():
 @app.on_event("startup")
 async def start_periodic_tasks():
     asyncio.create_task(periodic_cleanup())
+
+# 既存のimport部分に追加
+from routes import legal
+
+# 既存のrouter include部分に追加
+app.include_router(legal.router)

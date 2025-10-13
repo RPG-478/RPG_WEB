@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>トレード - RPG BOT Web</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/static/css/style.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/">RPG BOT Web</a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/dashboard">ダッシュボード</a>
+                <a class="nav-link active" href="/trade">トレード</a>
+                <a class="nav-link" href="/auth/logout">ログアウト</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <h1 class="mb-4">トレード</h1>
+
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">新規トレード申請</h5>
+                    </div>
+                    <div class="card-body">
+                        <form method="POST" action="/trade/request">
+                            <div class="mb-3">
+                                <label for="receiver_id" class="form-label">受信者のDiscord ID</label>
+                                <input type="text" class="form-control" id="receiver_id" name="receiver_id" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="item_name" class="form-label">アイテム名</label>
+                                <select class="form-select" id="item_name" name="item_name" required>
+                                    <option value="">選択してください</option>
+                                    {% if player.inventory %}
+                                        {% for item in player.inventory %}
+                                            <option value="{{ item }}">{{ item }}</option>
+                                        {% endfor %}
+                                    {% endif %}
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary">申請する</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <div class="card">
+                    <div class="card-header bg-warning text-dark">
+                        <h5 class="mb-0">保留中のトレード</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if pending_trades and pending_trades|length > 0 %}
+                            {% for trade in pending_trades %}
+                                <div class="card mb-2">
+                                    <div class="card-body">
+                                        <p><strong>送信者:</strong> {{ trade.sender_id }}</p>
+                                        <p><strong>アイテム:</strong> {{ trade.item_name }}</p>
+                                        <p><strong>申請日:</strong> {{ trade.created_at }}</p>
+                                        <form method="POST" action="/trade/{{ trade.id }}/approve" class="d-inline">
+                                            <button type="submit" class="btn btn-sm btn-success">承認</button>
+                                        </form>
+                                        <form method="POST" action="/trade/{{ trade.id }}/reject" class="d-inline">
+                                            <button type="submit" class="btn btn-sm btn-danger">拒否</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <p class="text-muted">保留中のトレードはありません</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0">トレード履歴</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if trade_history and trade_history|length > 0 %}
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>送信者</th>
+                                            <th>受信者</th>
+                                            <th>アイテム</th>
+                                            <th>ステータス</th>
+                                            <th>日時</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for trade in trade_history %}
+                                            <tr>
+                                                <td>{{ trade.sender_id }}</td>
+                                                <td>{{ trade.receiver_id }}</td>
+                                                <td>{{ trade.item_name }}</td>
+                                                <td>
+                                                    {% if trade.status == 'pending' %}
+                                                        <span class="badge bg-warning">保留中</span>
+                                                    {% elif trade.status == 'approved' %}
+                                                        <span class="badge bg-success">承認済み</span>
+                                                    {% elif trade.status == 'rejected' %}
+                                                        <span class="badge bg-danger">拒否</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td>{{ trade.created_at }}</td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <p class="text-muted">トレード履歴がありません</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-3">
+            <a href="/dashboard" class="btn btn-outline-secondary">ダッシュボードに戻る</a>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

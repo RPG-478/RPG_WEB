@@ -137,8 +137,10 @@ def update_trade_status(trade_id, status):
 def approve_trade(trade_id):
     """トレードを承認"""
     try:
+        # トレード情報を取得
         trade = supabase.table("trades").select("*").eq("id", trade_id).execute()
         if not trade.data:
+            print(f"Trade {trade_id} not found")
             return False
         
         trade_data = trade.data[0]
@@ -146,26 +148,49 @@ def approve_trade(trade_id):
         receiver_id = trade_data["receiver_id"]
         item_name = trade_data["item_name"]
         
+        # 送信者のプレイヤーデータを取得
         sender_player = get_player(sender_id)
         if not sender_player:
+            print(f"Sender {sender_id} not found")
             return False
         
+        # 送信者のインベントリを確認
         inventory = sender_player.get("inventory", [])
         if item_name not in inventory:
+            print(f"Item '{item_name}' not in sender's inventory")
             return False
         
-        remove_item_from_inventory(sender_id, item_name)
-        add_item_to_inventory(receiver_id, item_name)
+        # アイテムを削除
+        inventory.remove(item_name)
+        update_player(sender_id, inventory=inventory)
         
+        # 削除後のインベントリを再確認(デバッグ用)
+        sender_after = get_player(sender_id)
+        print(f"Sender inventory after removal: {sender_after.get('inventory', [])}")
+        
+        # 受信者にアイテムを追加
+        receiver_player = get_player(receiver_id)
+        if receiver_player:
+            receiver_inventory = receiver_player.get("inventory", [])
+            receiver_inventory.append(item_name)
+            update_player(receiver_id, inventory=receiver_inventory)
+            print(f"Receiver inventory after addition: {receiver_inventory}")
+        else:
+            # 受信者が存在しない場合、送信者にアイテムを戻す
+            inventory.append(item_name)
+            update_player(sender_id, inventory=inventory)
+            print(f"Receiver not found, item returned to sender")
+            return False
+        
+        # トレードステータスを更新
         update_trade_status(trade_id, "approved")
         return True
+        
     except Exception as e:
         print(f"Error approving trade: {e}")
+        import traceback
+        traceback.print_exc()
         return False
-
-def reject_trade(trade_id):
-    """トレードを拒否"""
-    return update_trade_status(trade_id, "rejected")
 
 # ==============================
 # 倉庫システム

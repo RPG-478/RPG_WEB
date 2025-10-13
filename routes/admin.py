@@ -17,30 +17,36 @@ ALGORITHM = "HS256"
 def get_discord_id_from_token(session_token: str = None) -> str:
     """JWTトークンからDiscord IDを取得"""
     if not session_token:
+        print("DEBUG: session_token が None です")
         return None
     try:
         payload = jwt.decode(session_token, SECRET_KEY, algorithms=[ALGORITHM])
-        return payload.get("discord_id")
-    except JWTError:
+        discord_id = payload.get("discord_id")
+        print(f"DEBUG: JWTペイロード = {payload}")
+        print(f"DEBUG: discord_id = {discord_id}, type = {type(discord_id)}")
+        return str(discord_id) if discord_id else None  # ← 文字列に変換!
+    except JWTError as e:
+        print(f"DEBUG: JWTデコードエラー - {e}")
         return None
-
-def is_admin(discord_id: str, request: Request) -> bool:
-    """管理者かどうか確認"""
-    admin_cookie = request.cookies.get("admin_authenticated")
-    is_admin_auth = admin_cookie == "true"
-    return discord_id == ADMIN_DISCORD_ID and is_admin_auth
 
 @router.get("/admin", response_class=HTMLResponse)
 async def admin_login_page(request: Request, session_token: str = Cookie(None)):
     """管理者ログインページ"""
     discord_id = get_discord_id_from_token(session_token)
     
+    # デバッグログ
+    print(f"DEBUG: discord_id = {discord_id}, type = {type(discord_id)}")
+    print(f"DEBUG: ADMIN_DISCORD_ID = {ADMIN_DISCORD_ID}, type = {type(ADMIN_DISCORD_ID)}")
+    print(f"DEBUG: 一致? {discord_id == ADMIN_DISCORD_ID}")
+    
     # Discord OAuth2でログインしていない場合
     if not discord_id:
+        print("DEBUG: Discord IDが取得できませんでした")
         return RedirectResponse(url="/auth/login", status_code=302)
     
     # 管理者IDでない場合
     if discord_id != ADMIN_DISCORD_ID:
+        print(f"DEBUG: 管理者IDではありません")
         raise HTTPException(status_code=403, detail="管理者権限がありません")
     
     # すでに認証済みの場合

@@ -4,7 +4,6 @@ from fastapi import FastAPI
 from fastapi.responses import HTMLResponse, JSONResponse
 from routes import status, trade, auth
 
-# --- ここが超重要 ---
 class UTF8JSONResponse(JSONResponse):
     media_type = "application/json; charset=utf-8"
 

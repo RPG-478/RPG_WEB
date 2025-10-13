@@ -24,10 +24,19 @@ def get_discord_id_from_token(session_token: str = None) -> str:
         discord_id = payload.get("discord_id")
         print(f"DEBUG: JWTペイロード = {payload}")
         print(f"DEBUG: discord_id = {discord_id}, type = {type(discord_id)}")
-        return str(discord_id) if discord_id else None  # ← 文字列に変換!
+        return str(discord_id) if discord_id else None
     except JWTError as e:
         print(f"DEBUG: JWTデコードエラー - {e}")
         return None
+
+def is_admin(discord_id: str, request: Request) -> bool:
+    """管理者かどうか確認"""
+    if not discord_id:
+        return False
+    admin_cookie = request.cookies.get("admin_authenticated")
+    is_admin_auth = admin_cookie == "true"
+    print(f"DEBUG: is_admin check - discord_id={discord_id}, ADMIN_DISCORD_ID={ADMIN_DISCORD_ID}, admin_auth={is_admin_auth}")
+    return discord_id == ADMIN_DISCORD_ID and is_admin_auth
 
 @router.get("/admin", response_class=HTMLResponse)
 async def admin_login_page(request: Request, session_token: str = Cookie(None)):

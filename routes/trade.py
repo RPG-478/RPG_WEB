@@ -27,3 +27,21 @@ async def trade_history(user_id: str = Query(...)):
         return {"status": "success", "history": response.data}
     except Exception as e:
         return {"error": str(e)}
+        
+
+@router.get("/trade")
+async def trade_page(request: Request, discord_id: str = Depends(get_current_user)):
+    """認証後、トレードページをレンダリングし、必要なデータを渡す"""
+    
+    # Supabaseから必要なデータを取得
+    player = supabase_client.get_player(discord_id)
+    pending_trades = supabase_client.get_pending_trades(discord_id)
+    trade_history = supabase_client.get_trade_history(discord_id)
+    
+    return templates.TemplateResponse("trade.html", {
+        "request": request,
+        "discord_id": discord_id,
+        "player": player,
+        "pending_trades": pending_trades,
+        "trade_history": trade_history
+    })

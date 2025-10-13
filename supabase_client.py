@@ -12,14 +12,8 @@ def get_supabase_client():
     
     return create_client(url, key)
 
-supabase = None
-
-def _get_client():
-    """内部用：Supabaseクライアントを取得"""
-    global supabase
-    if supabase is None:
-        supabase = get_supabase_client()
-    return supabase
+# グローバルクライアントを初期化
+supabase = get_supabase_client()
 
 def get_player(user_id):
     """プレイヤーデータを取得"""
@@ -204,5 +198,23 @@ def get_storage_items(user_id, include_taken=False):
     except Exception as e:
         print(f"Error getting storage items: {e}")
         return []
-        
-_get_client()
+
+def get_storage_item_by_id(storage_id):
+    """IDで倉庫アイテムを取得"""
+    try:
+        res = supabase.table("storage").select("*").eq("id", storage_id).execute()
+        return res.data[0] if res.data else None
+    except Exception as e:
+        print(f"Error getting storage item: {e}")
+        return None
+
+def take_from_storage(user_id, storage_id):
+    """倉庫からアイテムを取り出す"""
+    try:
+        supabase.table("storage").update({
+            "is_taken": True
+        }).eq("id", storage_id).eq("user_id", str(user_id)).execute()
+        return True
+    except Exception as e:
+        print(f"Error taking from storage: {e}")
+        return False

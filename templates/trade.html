@@ -34,25 +34,31 @@
                                 <label for="receiver_id" class="form-label">受信者のDiscord ID</label>
                                 <input type="text" class="form-control" id="receiver_id" name="receiver_id" required>
                             </div>
-                            <!-- アイテム選択部分を修正 -->
-<div class="mb-3">
-    <label for="item_name" class="form-label">アイテム名</label>
-    <select class="form-select" id="item_name" name="item_name" required>
-        <option value="">選択してください</option>
-        {% if available_inventory %}
-            {% for item in available_inventory %}
-                <option value="{{ item }}">{{ item }}</option>
-            {% endfor %}
-        {% else %}
-            <option value="" disabled>送信可能なアイテムがありません</option>
-        {% endif %}
-    </select>
-    {% if held_items and held_items|length > 0 %}
-    <small class="text-muted">
-        保留中: {{ held_items|join(', ') }}
-    </small>
-    {% endif %}
-</div>
+                            
+                            <div class="mb-3">
+                                <label for="item_name" class="form-label">アイテム名</label>
+                                <select class="form-select" id="item_name" name="item_name" required>
+                                    <option value="">選択してください</option>
+                                    {% if available_inventory %}
+                                        {% for item in available_inventory %}
+                                            <option value="{{ item }}">{{ item }}</option>
+                                        {% endfor %}
+                                    {% else %}
+                                        <option value="" disabled>送信可能なアイテムがありません</option>
+                                    {% endif %}
+                                </select>
+                                {% if held_items and held_items|length > 0 %}
+                                <small class="text-muted">
+                                    保留中: {{ held_items|join(', ') }}
+                                </small>
+                                {% endif %}
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary">送信</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
 
             <div class="col-md-6 mb-3">
                 <div class="card">
@@ -116,6 +122,8 @@
                                                         <span class="badge bg-success">承認済み</span>
                                                     {% elif trade.status == 'rejected' %}
                                                         <span class="badge bg-danger">拒否</span>
+                                                    {% elif trade.status == 'expired' %}
+                                                        <span class="badge bg-secondary">期限切れ</span>
                                                     {% endif %}
                                                 </td>
                                                 <td>{{ trade.created_at }}</td>

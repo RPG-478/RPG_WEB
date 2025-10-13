@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>利用規約 - RPG BOT Web</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/static/css/style.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/">RPG BOT Web</a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/dashboard">ダッシュボード</a>
+                <a class="nav-link" href="/trade">トレード</a>
+                {% if discord_id %}
+                <a class="nav-link" href="/auth/logout">ログアウト</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4 mb-5">
+        <h1 class="mb-4">Web利用規約</h1>
+        
+        <div class="card mb-3">
+            <div class="card-body">
+                <p class="text-muted">最終更新日: 2025年10月13日</p>
+                
+                <h3 class="mt-4">第1条 (適用範囲)</h3>
+                <p>本利用規約(以下「本規約」といいます)は、RPG BOT Webシステム(以下「本サービス」といいます)の利用に関する条件を定めるものです。本サービスを利用するすべてのユーザーは本規約に同意したものとみなされます。</p>
+
+                <h3 class="mt-4">第2条 (サービス内容)</h3>
+                <p>本サービスは、Discord RPG BOTと連携したプレイヤー情報管理、アイテムトレード機能を提供するWebシステムです。</p>
+                <ul>
+                    <li>プレイヤー情報の閲覧</li>
+                    <li>アイテム・装備の管理</li>
+                    <li>他プレイヤーとのアイテムトレード</li>
+                    <li>その他運営が提供する機能</li>
+                </ul>
+
+                <h3 class="mt-4">第3条 (アカウント)</h3>
+                <p>1. 本サービスの利用にはDiscordアカウントが必要です。</p>
+                <p>2. ユーザーは自己のアカウント情報を適切に管理する責任を負います。</p>
+                <p>3. アカウントの不正利用による損害について、運営は一切の責任を負いません。</p>
+
+                <h3 class="mt-4">第4条 (禁止事項)</h3>
+                <p>ユーザーは以下の行為を行ってはなりません:</p>
+                <ul>
+                    <li>法令または公序良俗に違反する行為</li>
+                    <li>本サービスの運営を妨害する行為</li>
+                    <li>他のユーザーに迷惑をかける行為</li>
+                    <li>不正なアクセス、データ改ざん等の行為</li>
+                    <li>バグ・脆弱性の悪用</li>
+                    <li>複数アカウントの作成(運営が認めた場合を除く)</li>
+                    <li>アイテムの不正取得・複製</li>
+                    <li>現金取引(RMT)等の規約違反行為</li>
+                </ul>
+
+                <h3 class="mt-4">第5条 (トレード機能)</h3>
+                <p>1. トレード機能は、ユーザー間でアイテムを交換するための機能です。</p>
+                <p>2. トレード申請から24時間以内に承認・拒否がない場合、自動的にキャンセルされます。</p>
+                <p>3. トレード中のアイテムは保留状態となり、他の取引に使用できません。</p>
+                <p>4. トレード完了後の取り消しはできません。慎重に取引を行ってください。</p>
+
+                <h3 class="mt-4">第6条 (サービスの停止・変更)</h3>
+                <p>運営は以下の場合、事前の通知なくサービスの全部または一部を停止・変更できます:</p>
+                <ul>
+                    <li>システムメンテナンスの必要がある場合</li>
+                    <li>緊急の障害対応が必要な場合</li>
+                    <li>天災、停電等の不可抗力により運営が困難な場合</li>
+                </ul>
+
+                <h3 class="mt-4">第7条 (利用制限・アカウント停止)</h3>
+                <p>運営は、ユーザーが以下に該当する場合、事前の通知なくサービスの利用を制限またはアカウントを停止できます:</p>
+                <ul>
+                    <li>本規約に違反した場合</li>
+                    <li>運営からの連絡に対して長期間応答がない場合</li>
+                    <li>その他、運営が不適切と判断した場合</li>
+                </ul>
+
+                <h3 class="mt-4">第8条 (免責事項)</h3>
+                <p>1. 本サービスは現状有姿で提供され、運営は明示・黙示を問わず一切の保証を行いません。</p>
+                <p>2. 本サービスの利用により生じた損害について、運営は一切の責任を負いません。</p>
+                <p>3. ユーザー間のトラブルについて、運営は関与しません。</p>
+
+                <h3 class="mt-4">第9条 (個人情報の取扱い)</h3>
+                <p>個人情報の取扱いについては、別途<a href="/privacy">プライバシーポリシー</a>に定めます。</p>
+
+                <h3 class="mt-4">第10条 (規約の変更)</h3>
+                <p>運営は、必要に応じて本規約を変更できます。変更後の規約は、本サービス上に掲示した時点で効力を生じます。</p>
+
+                <h3 class="mt-4">第11条 (準拠法・管轄裁判所)</h3>
+                <p>1. 本規約は日本法に準拠します。</p>
+                <p>2. 本サービスに関する紛争は、運営の所在地を管轄する裁判所を専属的合意管轄裁判所とします。</p>
+            </div>
+        </div>
+
+        <div class="mt-4">
+            <a href="/dashboard" class="btn btn-outline-secondary">ダッシュボードに戻る</a>
+        </div>
+    </div>
+
+    <footer class="bg-dark text-white py-3 mt-5">
+        <div class="container text-center">
+            <p class="mb-2">&copy; 2025 RPG BOT Web. All rights reserved.</p>
+            <p class="mb-0">
+                <a href="/terms" class="text-white text-decoration-none me-3">Web利用規約</a>
+                <a href="/bot-terms" class="text-white text-decoration-none me-3">BOT利用規約</a>
+                <a href="/privacy" class="text-white text-decoration-none">プライバシーポリシー</a>
+            </p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

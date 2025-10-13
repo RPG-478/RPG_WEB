@@ -471,3 +471,42 @@ def get_available_inventory(user_id):
             available.append(item)
     
     return available
+    
+    
+def is_player_bot_banned(user_id):
+    """プレイヤーがBOT利用禁止かチェック"""
+    player = get_player(user_id)
+    if player:
+        return player.get("bot_banned", False)
+    return False
+def is_player_web_banned(user_id):
+    """プレイヤーがWeb利用禁止かチェック"""
+    player = get_player(user_id)
+    if player:
+        return player.get("web_banned", False)
+    return False
+def set_bot_ban(user_id, banned=True):
+    """BOT利用禁止を設定/解除"""
+    try:
+        update_player(user_id, bot_banned=banned)
+        return True
+    except Exception as e:
+        print(f"Error setting bot ban: {e}")
+        return False
+def set_web_ban(user_id, banned=True):
+    """Web利用禁止を設定/解除"""
+    try:
+        update_player(user_id, web_banned=banned)
+        return True
+    except Exception as e:
+        print(f"Error setting web ban: {e}")
+        return False
+def get_ban_status(user_id):
+    """BAN状態を取得"""
+    player = get_player(user_id)
+    if player:
+        return {
+            "bot_banned": player.get("bot_banned", False),
+            "web_banned": player.get("web_banned", False)
+        }
+    return {"bot_banned": False, "web_banned": False}

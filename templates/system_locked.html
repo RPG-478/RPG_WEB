@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚨 システムロック - RPG BOT Web</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .lock-container {
+            background: white;
+            border-radius: 15px;
+            padding: 40px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            max-width: 500px;
+            width: 100%;
+        }
+        .lock-icon {
+            font-size: 80px;
+            color: #dc3545;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="lock-container">
+        <div class="lock-icon">🔒</div>
+        <h2 class="text-center text-danger mb-4">SAFE_MODE 発動中</h2>
+        
+        {% if error %}
+        <div class="alert alert-danger">{{ error }}</div>
+        {% endif %}
+        
+        {% if needs_oauth %}
+        <div class="alert alert-warning">
+            <strong>⚠️ Discord OAuth2認証が必要です</strong>
+            <p class="mb-0">復旧にはまず管理者アカウントでログインしてください。</p>
+        </div>
+        <div class="text-center">
+            <a href="/auth/login" class="btn btn-primary btn-lg">Discord OAuth2でログイン</a>
+        </div>
+        {% else %}
+        <div class="alert alert-info">
+            <strong>ℹ️ システム復旧手順</strong>
+            <ol class="mb-0">
+                <li>Discord OAuth2認証済み ✅</li>
+                <li>復旧パスワードを入力 ⬇️</li>
+            </ol>
+        </div>
+        
+        <p class="text-muted mb-3">Discord ID: <strong>{{ discord_id }}</strong></p>
+        
+        <form method="POST" action="/admin/recovery">
+            <div class="mb-3">
+                <label for="recovery_password" class="form-label">復旧パスワード</label>
+                <input type="password" class="form-control form-control-lg" id="recovery_password" name="recovery_password" required autofocus>
+                <small class="text-muted">環境変数 RECOVERY_PASSWORD に設定されたパスワードを入力してください</small>
+            </div>
+            
+            <button type="submit" class="btn btn-danger w-100 btn-lg">🔓 システムロック解除</button>
+        </form>
+        
+        <div class="alert alert-warning mt-4">
+            <strong>⚠️ セキュリティ通知</strong>
+            <ul class="mb-0 mt-2">
+                <li>復旧試行は1時間に3回まで</li>
+                <li>失敗時は自動でDiscord通知</li>
+                <li>全ての復旧試行はログ記録されます</li>
+            </ul>
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>

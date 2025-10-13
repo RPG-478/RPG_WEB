@@ -1,22 +1,16 @@
 # routes/status.py
-
 from fastapi import APIRouter, Depends
-from fastapi.responses import HTMLResponse, JSONResponse # ★ JSONResponse をインポート
 from auth import get_current_user   
 
 router = APIRouter()
 
 @router.get("/status")
 async def get_user_status(discord_id: str = Depends(get_current_user)):
-    """ログインユーザーのステータスを取得"""
-    
-    return JSONResponse(
-        content={
-            "status": "success",
-            "message": "ログイン済みです", 
-            "discord_id": discord_id
-        },
-    )
+    return {
+        "status": "success",
+        "message": "ログイン済みです",
+        "discord_id": discord_id
+    }
 
 
 @router.get("/dashboard", response_class=HTMLResponse)

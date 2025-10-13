@@ -34,22 +34,25 @@
                                 <label for="receiver_id" class="form-label">受信者のDiscord ID</label>
                                 <input type="text" class="form-control" id="receiver_id" name="receiver_id" required>
                             </div>
-                            <div class="mb-3">
-                                <label for="item_name" class="form-label">アイテム名</label>
-                                <select class="form-select" id="item_name" name="item_name" required>
-                                    <option value="">選択してください</option>
-                                    {% if player.inventory %}
-                                        {% for item in player.inventory %}
-                                            <option value="{{ item }}">{{ item }}</option>
-                                        {% endfor %}
-                                    {% endif %}
-                                </select>
-                            </div>
-                            <button type="submit" class="btn btn-primary">申請する</button>
-                        </form>
-                    </div>
-                </div>
-            </div>
+                            <!-- アイテム選択部分を修正 -->
+<div class="mb-3">
+    <label for="item_name" class="form-label">アイテム名</label>
+    <select class="form-select" id="item_name" name="item_name" required>
+        <option value="">選択してください</option>
+        {% if available_inventory %}
+            {% for item in available_inventory %}
+                <option value="{{ item }}">{{ item }}</option>
+            {% endfor %}
+        {% else %}
+            <option value="" disabled>送信可能なアイテムがありません</option>
+        {% endif %}
+    </select>
+    {% if held_items and held_items|length > 0 %}
+    <small class="text-muted">
+        保留中: {{ held_items|join(', ') }}
+    </small>
+    {% endif %}
+</div>
 
             <div class="col-md-6 mb-3">
                 <div class="card">

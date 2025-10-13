@@ -510,3 +510,227 @@ def get_ban_status(user_id):
             "web_banned": player.get("web_banned", False)
         }
     return {"bot_banned": False, "web_banned": False}
+    
+
+def create_trade_proposal(sender_id, receiver_id, item_names):
+    """トレード提案を作成 (複数アイテム対応)"""
+    try:
+        from datetime import datetime
+        
+        # 送信者がアイテムを持っているか確認
+        sender_player = get_player(sender_id)
+        if not sender_player:
+            return None
+        
+        inventory = sender_player.get("inventory", [])
+        for item in item_names:
+            if item not in inventory:
+                print(f"Item '{item}' not in sender's inventory")
+                return None
+        
+        # アイテムが既に保留中でないか確認
+        for item in item_names:
+            if is_item_held(sender_id, item):
+                print(f"Item '{item}' is already held")
+                return None
+        
+        # トレード提案作成
+        trade_data = {
+            "sender_id": str(sender_id),
+            "receiver_id": str(receiver_id),
+            "sender_items": item_names,
+            "receiver_items": [],
+            "receiver_responded": False,
+            "status": "pending",
+            "created_at": datetime.utcnow().isoformat()
+        }
+        response = supabase.table("trades").insert(trade_data).execute()
+        
+        if response.data:
+            trade_id = response.data[0]["id"]
+            
+            # 各アイテムを保留状態にする
+            for item in item_names:
+                create_trade_hold(trade_id, sender_id, item)
+            
+            print(f"✅ Trade proposal {trade_id} created")
+            return response.data[0]
+        
+        return None
+    except Exception as e:
+        print(f"Error creating trade proposal: {e}")
+        import traceback
+        traceback.print_exc()
+        return None
+
+def set_receiver_items(trade_id, item_names):
+    """受信者がアイテムを提示 (ステータスをwaiting_senderに変更)"""
+    try:
+        from datetime import datetime
+        
+        # トレード情報取得
+        trade = supabase.table("trades").select("*").eq("id", trade_id).execute()
+        if not trade.data:
+            return False
+        
+        trade_data = trade.data[0]
+        receiver_id = trade_data["receiver_id"]
+        
+        # 受信者がアイテムを持っているか確認
+        receiver_player = get_player(receiver_id)
+        if not receiver_player:
+            return False
+        
+        inventory = receiver_player.get("inventory", [])
+        for item in item_names:
+            if item not in inventory:
+                print(f"Item '{item}' not in receiver's inventory")
+                return False
+        
+        # アイテムが既に保留中でないか確認
+        for item in item_names:
+            if is_item_held(receiver_id, item):
+                print(f"Item '{item}' is already held")
+                return False
+        
+        # トレード更新
+        update_data = {
+            "receiver_items": item_names,
+            "receiver_responded": True,
+            "status": "waiting_sender",
+            "updated_at": datetime.utcnow().isoformat()
+        }
+        supabase.table("trades").update(update_data).eq("id", trade_id).execute()
+        
+        # 受信者のアイテムを保留
+        for item in item_names:
+            create_trade_hold(trade_id, receiver_id, item)
+        
+        print(f"✅ Receiver items set for trade {trade_id}")
+        return True
+        
+    except Exception as e:
+        print(f"Error setting receiver items: {e}")
+        import traceback
+        traceback.print_exc()
+        return False
+
+def complete_trade(trade_id):
+    """トレードを完了 (アイテム交換実行)"""
+    try:
+        from datetime import datetime
+        
+        # トレード情報取得
+        trade = supabase.table("trades").select("*").eq("id", trade_id).execute()
+        if not trade.data:
+            return False
+        
+        trade_data = trade.data[0]
+        sender_id = trade_data["sender_id"]
+        receiver_id = trade_data["receiver_id"]
+        sender_items = trade_data.get("sender_items", [])
+        receiver_items = trade_data.get("receiver_items", [])
+        
+        # 送信者のプレイヤーデータ取得
+        sender_player = get_player(sender_id)
+        receiver_player = get_player(receiver_id)
+        
+        if not sender_player or not receiver_player:
+            return False
+        
+        # 送信者のインベントリ操作
+        sender_inventory = sender_player.get("inventory", [])
+        for item in sender_items:
+            if item in sender_inventory:
+                sender_inventory.remove(item)
+        
+        # 受信者のアイテムを送信者に追加
+        for item in receiver_items:
+            sender_inventory.append(item)
+        
+        update_player(sender_id, inventory=sender_inventory)
+        
+        # 受信者のインベントリ操作
+        receiver_inventory = receiver_player.get("inventory", [])
+        for item in receiver_items:
+            if item in receiver_inventory:
+                receiver_inventory.remove(item)
+        
+        # 送信者のアイテムを受信者に追加
+        for item in sender_items:
+            receiver_inventory.append(item)
+        
+        update_player(receiver_id, inventory=receiver_inventory)
+        
+        # トレードステータス更新
+        update_data = {
+            "status": "completed",
+            "updated_at": datetime.utcnow().isoformat()
+        }
+        supabase.table("trades").update(update_data).eq("id", trade_id).execute()
+        
+        # 保留解除
+        release_trade_hold(trade_id)
+        
+        print(f"✅ Trade {trade_id} completed successfully")
+        return True
+        
+    except Exception as e:
+        print(f"Error completing trade: {e}")
+        import traceback
+        traceback.print_exc()
+        return False
+
+def reject_trade(trade_id):
+    """トレードを拒否 (保留解除)"""
+    try:
+        from datetime import datetime
+        
+        # ステータス更新
+        update_data = {
+            "status": "rejected",
+            "updated_at": datetime.utcnow().isoformat()
+        }
+        supabase.table("trades").update(update_data).eq("id", trade_id).execute()
+        
+        # 保留解除
+        release_trade_hold(trade_id)
+        
+        print(f"✅ Trade {trade_id} rejected")
+        return True
+        
+    except Exception as e:
+        print(f"Error rejecting trade: {e}")
+        return False
+
+def get_my_trades(user_id):
+    """自分に関連する全トレードを状態別に取得"""
+    try:
+        # 受信したトレード (pending)
+        received_pending = supabase.table("trades").select("*").eq(
+            "receiver_id", str(user_id)
+        ).eq("status", "pending").order("created_at", desc=True).execute()
+        
+        # 送信したトレード (相手待ち)
+        sent_waiting = supabase.table("trades").select("*").eq(
+            "sender_id", str(user_id)
+        ).eq("status", "pending").order("created_at", desc=True).execute()
+        
+        # 送信したトレード (自分の最終確認待ち)
+        sent_final = supabase.table("trades").select("*").eq(
+            "sender_id", str(user_id)
+        ).eq("status", "waiting_sender").order("created_at", desc=True).execute()
+        
+        return {
+            "received_pending": received_pending.data if received_pending.data else [],
+            "sent_waiting_receiver": sent_waiting.data if sent_waiting.data else [],
+            "sent_waiting_sender": sent_final.data if sent_final.data else []
+        }
+        
+    except Exception as e:
+        print(f"Error getting my trades: {e}")
+        return {
+            "received_pending": [],
+            "sent_waiting_receiver": [],
+            "sent_waiting_sender": []
+        }

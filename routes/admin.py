@@ -127,7 +127,7 @@ async def ban_bot_user(request: Request, discord_id: str, session_token: str = C
     
     supabase_client.supabase.table("players").update({
         "bot_banned": True
-    }).eq("discord_id", discord_id).execute()
+    }).eq("user_id", discord_id).execute()  # ← user_id に変更
     
     return {"message": f"Discord ID {discord_id} をBOT利用禁止にしました"}
 
@@ -140,7 +140,7 @@ async def ban_web_user(request: Request, discord_id: str, session_token: str = C
     
     supabase_client.supabase.table("players").update({
         "web_banned": True
-    }).eq("discord_id", discord_id).execute()
+    }).eq("user_id", discord_id).execute()  # ← user_id に変更
     
     return {"message": f"Discord ID {discord_id} をWeb利用禁止にしました"}
 
@@ -153,7 +153,7 @@ async def unban_bot_user(request: Request, discord_id: str, session_token: str =
     
     supabase_client.supabase.table("players").update({
         "bot_banned": False
-    }).eq("discord_id", discord_id).execute()
+    }).eq("user_id", discord_id).execute()  # ← user_id に変更
     
     return {"message": f"Discord ID {discord_id} のBOT利用禁止を解除しました"}
 
@@ -166,7 +166,7 @@ async def unban_web_user(request: Request, discord_id: str, session_token: str =
     
     supabase_client.supabase.table("players").update({
         "web_banned": False
-    }).eq("discord_id", discord_id).execute()
+    }).eq("user_id", discord_id).execute()  # ← user_id に変更
     
     return {"message": f"Discord ID {discord_id} のWeb利用禁止を解除しました"}
 
@@ -201,7 +201,7 @@ async def view_player_data(request: Request, discord_id: str, session_token: str
         return RedirectResponse(url="/admin", status_code=302)
     
     # プレイヤーデータ取得
-    player_data = supabase_client.supabase.table("players").select("*").eq("discord_id", discord_id).single().execute()
+    player_data = supabase_client.supabase.table("players").select("*").eq("user_id", discord_id).single().execute()  # ← user_id に変更
     
     if not player_data.data:
         raise HTTPException(status_code=404, detail="プレイヤーが見つかりません")

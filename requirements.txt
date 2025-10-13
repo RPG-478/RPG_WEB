@@ -7,3 +7,5 @@ supabase>=2.22.0
 uvicorn>=0.37.0
 requests
 itsdangerous
+passlib[argon2]
+httpx

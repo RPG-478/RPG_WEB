@@ -48,5 +48,6 @@ async def force_json_headers(request, call_next):
     response = await call_next(request)
     if response.headers.get("content-type", "").startswith("application/json"):
         response.headers["Content-Type"] = "application/json; charset=utf-8"
-        response.headers.pop("content-disposition", None)
+        if "content-disposition" in response.headers:
+            del response.headers["content-disposition"]
     return response

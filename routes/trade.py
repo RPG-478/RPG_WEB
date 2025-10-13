@@ -70,7 +70,7 @@ async def trade_history(user_id: str = Depends(get_current_user)):
 
 @router.get("/trade", response_class=HTMLResponse)
 async def trade_page(request: Request, discord_id: str = Depends(get_current_user)):
-    """トレードページ"""
+    """トレードページ(保留機能対応版)"""
     player = supabase_client.get_player(discord_id)
     if not player:
         return RedirectResponse(url="/dashboard")
@@ -78,10 +78,16 @@ async def trade_page(request: Request, discord_id: str = Depends(get_current_use
     pending_trades = supabase_client.get_pending_trades(discord_id)
     trade_history = supabase_client.get_trade_history(discord_id)
     
+    # 利用可能なインベントリ(保留中を除く)を取得
+    available_inventory = supabase_client.get_available_inventory(discord_id)
+    held_items = supabase_client.get_held_items(discord_id)
+    
     return templates.TemplateResponse("trade.html", {
         "request": request,
         "discord_id": discord_id,
         "player": player,
+        "available_inventory": available_inventory,  # 保留中を除いたインベントリ
+        "held_items": held_items,  # 保留中のアイテム
         "pending_trades": pending_trades,
         "trade_history": trade_history
     })

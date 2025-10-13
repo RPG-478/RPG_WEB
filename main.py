@@ -37,29 +37,11 @@ app.add_middleware(
 )
 
 @app.get("/", response_class=HTMLResponse)
-async def root():
-    return """
-    <!DOCTYPE html>
-    <html lang="ja">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>RPG BOT Web</title>
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    </head>
-    <body>
-        <div class="container mt-5">
-            <div class="text-center">
-                <h1 class="display-4">RPG BOT Web</h1>
-                <p class="lead">Discord RPGゲームのWeb管理システム</p>
-                <hr class="my-4">
-                <p>Supabase連携準備完了。Discord OAuthでログインしてください。</p>
-                <a href="/auth/login" class="btn btn-primary btn-lg">Discordでログイン</a>
-            </div>
-        </div>
-    </body>
-    </html>
-    """
+async def root(request: Request):
+    """トップページ"""
+    return templates.TemplateResponse("index.html", {
+        "request": request
+    })
 
 app.include_router(auth.router, prefix="/auth", tags=["auth"])
 app.include_router(status.router, tags=["status"])

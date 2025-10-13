@@ -243,3 +243,231 @@ def take_from_storage(user_id, storage_id):
     except Exception as e:
         print(f"Error taking from storage: {e}")
         return False
+        
+# ==============================
+# トレード保留システム
+# ==============================
+
+def create_trade_hold(trade_id, user_id, item_name):
+    """トレードアイテムを保留状態にする"""
+    try:
+        from datetime import datetime, timedelta
+        expires_at = datetime.utcnow() + timedelta(hours=24)
+        
+        supabase.table("trade_holds").insert({
+            "trade_id": trade_id,
+            "user_id": str(user_id),
+            "item_name": item_name,
+            "expires_at": expires_at.isoformat()
+        }).execute()
+        return True
+    except Exception as e:
+        print(f"Error creating trade hold: {e}")
+        return False
+
+def release_trade_hold(trade_id):
+    """トレード保留を解除"""
+    try:
+        supabase.table("trade_holds").delete().eq("trade_id", trade_id).execute()
+        return True
+    except Exception as e:
+        print(f"Error releasing trade hold: {e}")
+        return False
+
+def get_held_items(user_id):
+    """ユーザーの保留中アイテムリストを取得"""
+    try:
+        res = supabase.table("trade_holds").select("*").eq("user_id", str(user_id)).execute()
+        return [item["item_name"] for item in res.data] if res.data else []
+    except Exception as e:
+        print(f"Error getting held items: {e}")
+        return []
+
+def is_item_held(user_id, item_name):
+    """アイテムが保留中かチェック"""
+    try:
+        res = supabase.table("trade_holds").select("*").eq(
+            "user_id", str(user_id)
+        ).eq("item_name", item_name).execute()
+        return len(res.data) > 0 if res.data else False
+    except Exception as e:
+        print(f"Error checking item hold: {e}")
+        return False
+
+def cleanup_expired_holds():
+    """期限切れの保留を自動解除"""
+    try:
+        from datetime import datetime
+        now = datetime.utcnow().isoformat()
+        
+        # 期限切れの保留を取得
+        expired = supabase.table("trade_holds").select("*").lt("expires_at", now).execute()
+        
+        if expired.data:
+            for hold in expired.data:
+                trade_id = hold["trade_id"]
+                
+                # トレードを期限切れに設定
+                update_trade_status(trade_id, "expired")
+                
+                # 保留を解除
+                release_trade_hold(trade_id)
+                
+                print(f"Trade {trade_id} expired and hold released")
+        
+        return True
+    except Exception as e:
+        print(f"Error cleaning up expired holds: {e}")
+        return False
+
+# ==============================
+# トレード関連機能(改修版)
+# ==============================
+
+def create_trade_request(sender_id, receiver_id, item_name, item_type="item"):
+    """トレードリクエストを作成(保留機能付き)"""
+    try:
+        from datetime import datetime
+        
+        # 1. 送信者がアイテムを持っているか確認
+        sender_player = get_player(sender_id)
+        if not sender_player:
+            return None
+        
+        inventory = sender_player.get("inventory", [])
+        if item_name not in inventory:
+            print(f"Item '{item_name}' not in sender's inventory")
+            return None
+        
+        # 2. アイテムが既に保留中でないか確認
+        if is_item_held(sender_id, item_name):
+            print(f"Item '{item_name}' is already held in another trade")
+            return None
+        
+        # 3. トレードを作成
+        trade_data = {
+            "sender_id": str(sender_id),
+            "receiver_id": str(receiver_id),
+            "item_name": item_name,
+            "item_type": item_type,
+            "status": "pending",
+            "created_at": datetime.utcnow().isoformat()
+        }
+        response = supabase.table("trades").insert(trade_data).execute()
+        
+        if response.data:
+            trade_id = response.data[0]["id"]
+            
+            # 4. アイテムを保留状態にする
+            if create_trade_hold(trade_id, sender_id, item_name):
+                print(f"✅ Trade {trade_id} created and item held")
+                return response.data[0]
+            else:
+                # 保留に失敗したらトレードを削除
+                supabase.table("trades").delete().eq("id", trade_id).execute()
+                return None
+        
+        return None
+    except Exception as e:
+        print(f"Error creating trade: {e}")
+        import traceback
+        traceback.print_exc()
+        return None
+
+def approve_trade(trade_id):
+    """トレードを承認(保留解除付き)"""
+    try:
+        # 1. トレード情報を取得
+        trade = supabase.table("trades").select("*").eq("id", trade_id).execute()
+        if not trade.data:
+            return False
+        
+        trade_data = trade.data[0]
+        
+        # トレードが既に処理済みでないか確認
+        if trade_data.get("status") != "pending":
+            print(f"Trade {trade_id} is not pending")
+            return False
+        
+        sender_id = trade_data["sender_id"]
+        receiver_id = trade_data["receiver_id"]
+        item_name = trade_data["item_name"]
+        
+        # 2. 送信者と受信者の検証
+        sender_player = get_player(sender_id)
+        receiver_player = get_player(receiver_id)
+        
+        if not sender_player or not receiver_player:
+            update_trade_status(trade_id, "failed")
+            release_trade_hold(trade_id)
+            return False
+        
+        # 3. アイテムが保留されているか確認
+        if not is_item_held(sender_id, item_name):
+            print(f"Item '{item_name}' is not held")
+            update_trade_status(trade_id, "failed")
+            return False
+        
+        # 4. アイテム移動
+        sender_inventory = sender_player.get("inventory", [])
+        
+        # アイテムが実際にインベントリにあるか確認
+        if item_name not in sender_inventory:
+            update_trade_status(trade_id, "failed")
+            release_trade_hold(trade_id)
+            return False
+        
+        # 送信者から削除
+        sender_inventory.remove(item_name)
+        update_player(sender_id, inventory=sender_inventory)
+        
+        # 受信者に追加
+        receiver_inventory = receiver_player.get("inventory", [])
+        receiver_inventory.append(item_name)
+        update_player(receiver_id, inventory=receiver_inventory)
+        
+        # 5. トレード完了処理
+        update_trade_status(trade_id, "approved")
+        release_trade_hold(trade_id)  # 保留解除
+        
+        print(f"✅ Trade {trade_id} approved and hold released")
+        return True
+        
+    except Exception as e:
+        print(f"❌ Error approving trade: {e}")
+        import traceback
+        traceback.print_exc()
+        return False
+
+def reject_trade(trade_id):
+    """トレードを拒否(保留解除)"""
+    try:
+        # トレードステータスを更新
+        result = update_trade_status(trade_id, "rejected")
+        
+        # 保留を解除(アイテムが送信者に戻る)
+        if result:
+            release_trade_hold(trade_id)
+            print(f"✅ Trade {trade_id} rejected and hold released")
+        
+        return result
+    except Exception as e:
+        print(f"Error rejecting trade: {e}")
+        return False
+
+def get_available_inventory(user_id):
+    """利用可能なインベントリ(保留中を除く)を取得"""
+    player = get_player(user_id)
+    if not player:
+        return []
+    
+    inventory = player.get("inventory", [])
+    held_items = get_held_items(user_id)
+    
+    # 保留中のアイテムを除外
+    available = []
+    for item in inventory:
+        if item not in held_items or inventory.count(item) > held_items.count(item):
+            available.append(item)
+    
+    return available

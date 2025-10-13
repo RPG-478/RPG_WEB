@@ -343,3 +343,159 @@ async def admin_logout():
     response = RedirectResponse(url="/", status_code=302)
     response.delete_cookie("admin_authenticated")
     return response
+    
+# (admin.pyの続き - ban_bot_userの後に追加)
+
+@router.post("/admin/unban-bot/{discord_id}")
+async def unban_bot_user(request: Request, discord_id: str, session_token: str = Cookie(None)):
+    """BOT利用禁止解除"""
+    admin_id = get_discord_id_from_token(session_token)
+    if not is_admin(admin_id, request):
+        raise HTTPException(status_code=403, detail="管理者権限がありません")
+    
+    client_ip = get_client_ip(request)
+    
+    # BAN解除
+    supabase_client.supabase.table("players").update({
+        "bot_banned": False
+    }).eq("user_id", discord_id).execute()
+    
+    # BAN履歴を更新 (is_active = False, unbanned_at設定)
+    supabase_client.supabase.table("ban_history").update({
+        "is_active": False,
+        "unbanned_at": datetime.utcnow().isoformat()
+    }).eq("user_id", discord_id).eq("ban_type", "bot").eq("is_active", True).execute()
+    
+    # 管理者ログを記録
+    supabase_client.supabase.table("admin_logs").insert({
+        "admin_id": admin_id,
+        "action": "unban_bot",
+        "target_id": discord_id,
+        "reason": "BAN解除",
+        "ip_address": client_ip,
+        "created_at": datetime.utcnow().isoformat()
+    }).execute()
+    
+    return JSONResponse({"message": f"Discord ID {discord_id} のBOT利用禁止を解除しました"})
+
+@router.post("/admin/ban-web/{discord_id}")
+async def ban_web_user(request: Request, discord_id: str, reason: str = Form(...), session_token: str = Cookie(None)):
+    """Web利用禁止 (理由必須)"""
+    admin_id = get_discord_id_from_token(session_token)
+    if not is_admin(admin_id, request):
+        raise HTTPException(status_code=403, detail="管理者権限がありません")
+    
+    client_ip = get_client_ip(request)
+    
+    # BANを実行
+    supabase_client.supabase.table("players").update({
+        "web_banned": True
+    }).eq("user_id", discord_id).execute()
+    
+    # BAN履歴を記録
+    supabase_client.supabase.table("ban_history").insert({
+        "user_id": discord_id,
+        "ban_type": "web",
+        "reason": reason,
+        "banned_by": admin_id,
+        "banned_at": datetime.utcnow().isoformat(),
+        "is_active": True
+    }).execute()
+    
+    # 管理者ログを記録
+    supabase_client.supabase.table("admin_logs").insert({
+        "admin_id": admin_id,
+        "action": "ban_web",
+        "target_id": discord_id,
+        "reason": reason,
+        "ip_address": client_ip,
+        "created_at": datetime.utcnow().isoformat()
+    }).execute()
+    
+    return JSONResponse({"message": f"Discord ID {discord_id} をWeb利用禁止にしました"})
+
+@router.post("/admin/unban-web/{discord_id}")
+async def unban_web_user(request: Request, discord_id: str, session_token: str = Cookie(None)):
+    """Web利用禁止解除"""
+    admin_id = get_discord_id_from_token(session_token)
+    if not is_admin(admin_id, request):
+        raise HTTPException(status_code=403, detail="管理者権限がありません")
+    
+    client_ip = get_client_ip(request)
+    
+    # BAN解除
+    supabase_client.supabase.table("players").update({
+        "web_banned": False
+    }).eq("user_id", discord_id).execute()
+    
+    # BAN履歴を更新
+    supabase_client.supabase.table("ban_history").update({
+        "is_active": False,
+        "unbanned_at": datetime.utcnow().isoformat()
+    }).eq("user_id", discord_id).eq("ban_type", "web").eq("is_active", True).execute()
+    
+    # 管理者ログを記録
+    supabase_client.supabase.table("admin_logs").insert({
+        "admin_id": admin_id,
+        "action": "unban_web",
+        "target_id": discord_id,
+        "reason": "BAN解除",
+        "ip_address": client_ip,
+        "created_at": datetime.utcnow().isoformat()
+    }).execute()
+    
+    return JSONResponse({"message": f"Discord ID {discord_id} のWeb利用禁止を解除しました"})
+
+@router.post("/admin/cancel-trade/{trade_id}")
+async def cancel_trade(request: Request, trade_id: int, session_token: str = Cookie(None)):
+    """トレード強制キャンセル"""
+    admin_id = get_discord_id_from_token(session_token)
+    if not is_admin(admin_id, request):
+        raise HTTPException(status_code=403, detail="管理者権限がありません")
+    
+    client_ip = get_client_ip(request)
+    
+    # トレード情報取得
+    trade = supabase_client.supabase.table("trades").select("*").eq("id", trade_id).single().execute()
+    
+    if not trade.data:
+        raise HTTPException(status_code=404, detail="トレードが見つかりません")
+    
+    # 保留解除
+    supabase_client.supabase.table("trade_holds").delete().eq("trade_id", trade_id).execute()
+    
+    # トレードステータスを cancelled に
+    supabase_client.supabase.table("trades").update({
+        "status": "cancelled"
+    }).eq("id", trade_id).execute()
+    
+    # 管理者ログを記録
+    supabase_client.supabase.table("admin_logs").insert({
+        "admin_id": admin_id,
+        "action": "cancel_trade",
+        "target_id": str(trade_id),
+        "reason": "管理者による強制キャンセル",
+        "ip_address": client_ip,
+        "created_at": datetime.utcnow().isoformat()
+    }).execute()
+    
+    return JSONResponse({"message": f"トレード ID {trade_id} を強制キャンセルしました"})
+
+@router.get("/admin/player/{discord_id}", response_class=HTMLResponse)
+async def view_player_data(request: Request, discord_id: str, session_token: str = Cookie(None)):
+    """プレイヤーデータ詳細表示"""
+    admin_id = get_discord_id_from_token(session_token)
+    if not is_admin(admin_id, request):
+        return RedirectResponse(url="/admin", status_code=302)
+    
+    # プレイヤーデータ取得
+    player_data = supabase_client.supabase.table("players").select("*").eq("user_id", discord_id).single().execute()
+    
+    if not player_data.data:
+        raise HTTPException(status_code=404, detail="プレイヤーが見つかりません")
+    
+    return templates.TemplateResponse("admin_player_detail.html", {
+        "request": request,
+        "discord_id": admin_id,
+        "player": player_data.data
+    })

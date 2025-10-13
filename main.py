@@ -74,3 +74,23 @@ async def force_json_headers(request, call_next):
         if "content-disposition" in response.headers:
             del response.headers["content-disposition"]
     return response
+    
+from fastapi import FastAPI, BackgroundTasks
+import supabase_client
+
+@app.on_event("startup")
+async def startup_event():
+    """アプリ起動時に期限切れ保留をクリーンアップ"""
+    supabase_client.cleanup_expired_holds()
+
+# 定期的にクリーンアップ(オプション)
+import asyncio
+
+async def periodic_cleanup():
+    while True:
+        await asyncio.sleep(3600)  # 1時間ごと
+        supabase_client.cleanup_expired_holds()
+
+@app.on_event("startup")
+async def start_periodic_tasks():
+    asyncio.create_task(periodic_cleanup())

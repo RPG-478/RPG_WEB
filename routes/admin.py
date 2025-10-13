@@ -167,6 +167,37 @@ async def view_player_data(request: Request, discord_id: str):
         "discord_id": request.session.get("discord_id"),
         "player": player_data.data
     })
+    
+    
+@router.get("/admin", response_class=HTMLResponse)
+async def admin_login_page(request: Request):
+    """管理者ログインページ"""
+    discord_id = request.session.get("discord_id")
+    
+    # デバッグ用ログ
+    print(f"セッションのDiscord ID: {discord_id}")
+    print(f"環境変数のADMIN_DISCORD_ID: {ADMIN_DISCORD_ID}")
+    print(f"一致: {discord_id == ADMIN_DISCORD_ID}")
+    
+    # Discord OAuth2でログインしていない場合
+    if not discord_id:
+        print("Discord IDがセッションにありません")
+        return RedirectResponse(url="/auth/login", status_code=302)
+    
+    # 管理者IDでない場合
+    if discord_id != ADMIN_DISCORD_ID:
+        print(f"管理者IDではありません: {discord_id} != {ADMIN_DISCORD_ID}")
+        raise HTTPException(status_code=403, detail="管理者権限がありません")
+    
+    # すでに認証済みの場合
+    if request.session.get("admin_authenticated"):
+        return RedirectResponse(url="/admin/dashboard", status_code=302)
+    
+    # パスワード入力画面
+    return templates.TemplateResponse("admin_login.html", {
+        "request": request,
+        "discord_id": discord_id
+    })
 
 @router.post("/admin/logout")
 async def admin_logout(request: Request):

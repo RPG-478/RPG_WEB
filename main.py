@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-
+from routes import legal
 from routes import status, trade, auth
 
 class UTF8JSONResponse(JSONResponse):
@@ -95,8 +95,5 @@ async def periodic_cleanup():
 async def start_periodic_tasks():
     asyncio.create_task(periodic_cleanup())
 
-# 既存のimport部分に追加
-from routes import legal
 
-# 既存のrouter include部分に追加
 app.include_router(legal.router)

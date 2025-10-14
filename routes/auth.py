@@ -62,6 +62,42 @@ async def login(response: Response):
 @router.get("/callback")
 async def callback(code: str, state: str, request: Request):
     """Discord OAuth2 コールバック - CSRF保護とレート制限対策済み"""
+    
+    # ↓↓↓ ここから追加 ↓↓↓
+    from utils.security import get_client_ip
+    import supabase_client
+    
+    client_ip = get_client_ip(request)
+    
+    # 1時間以内のOAuth2試行回数チェック (DoS対策)
+    one_hour_ago = (datetime.utcnow() - timedelta(hours=1)).isoformat()
+    
+    oauth_attempts = supabase_client.supabase.table("oauth_attempts").select("*").eq(
+        "ip_address", client_ip
+    ).gte("created_at", one_hour_ago).execute()
+    
+    if oauth_attempts.data and len(oauth_attempts.data) >= 20:
+        raise HTTPException(
+            status_code=429,
+            detail="OAuth2ログイン試行が多すぎます。1時間後に再試行してください。"
+        )
+    
+    # OAuth2試行を記録
+    supabase_client.supabase.table("oauth_attempts").insert({
+        "ip_address": client_ip,
+        "created_at": datetime.utcnow().isoformat()
+    }).execute()
+    # ↑↑↑ ここまで追加 ↑↑↑
+    
+    # 既存のコード (if not all([DISCORD_CLIENT_ID...]) から続く)
+    if not all([DISCORD_CLIENT_ID, DISCORD_CLIENT_SECRET, REDIRECT_URI]):
+        return JSONResponse(
+            {"error": "Discord認証設定が不完全です"},
+            status_code=500
+        )
+    # ... 以下既存コード
+async def callback(code: str, state: str, request: Request):
+    """Discord OAuth2 コールバック - CSRF保護とレート制限対策済み"""
     if not all([DISCORD_CLIENT_ID, DISCORD_CLIENT_SECRET, REDIRECT_URI]):
         return JSONResponse(
             {"error": "Discord認証設定が不完全です"},

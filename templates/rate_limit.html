@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⏳ アクセス制限 - RPG BOT Web</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .limit-container {
+            background: white;
+            border-radius: 15px;
+            padding: 40px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+        }
+        .limit-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="limit-container">
+        <div class="limit-icon">⏳</div>
+        <h2 class="text-danger mb-4">アクセス制限</h2>
+        <p class="lead">リクエストが多すぎます</p>
+        <p class="text-muted">しばらく待ってから再度お試しください</p>
+        
+        <div class="alert alert-info mt-4">
+            <strong>💡 制限内容</strong>
+            <ul class="mb-0 mt-2 text-start">
+                <li>通常ページ: 1分間に30リクエスト</li>
+                <li>OAuth2ログイン: 1時間に20回</li>
+                <li>ダッシュボード: 10分間に100アクセス</li>
+            </ul>
+        </div>
+        
+        <a href="/" class="btn btn-primary mt-3">トップページに戻る</a>
+    </div>
+</body>
+</html>

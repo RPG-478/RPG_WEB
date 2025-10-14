@@ -22,6 +22,50 @@ class UTF8JSONResponse(JSONResponse):
         ).encode("utf-8")
 
 app = FastAPI(
+# ↓↓↓ この部分を追加 ↓↓↓
+from datetime import datetime, timedelta
+from collections import defaultdict
+from starlette.middleware.base import BaseHTTPMiddleware
+
+# グローバルレート制限 (メモリベース)
+rate_limit_storage = defaultdict(list)
+
+class RateLimitMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        # 管理画面は別のセキュリティで守られているのでスキップ
+        if request.url.path.startswith("/admin"):
+            return await call_next(request)
+        
+        # IPアドレス取得
+        client_ip = request.headers.get("X-Forwarded-For", "").split(",")[0].strip()
+        if not client_ip:
+            client_ip = request.headers.get("X-Real-IP", request.client.host if request.client else "unknown")
+        
+        current_time = datetime.utcnow()
+        
+        # 1分以内のリクエスト数をカウント
+        one_minute_ago = current_time - timedelta(minutes=1)
+        rate_limit_storage[client_ip] = [
+            timestamp for timestamp in rate_limit_storage[client_ip]
+            if timestamp > one_minute_ago
+        ]
+        
+        # レート制限チェック (1分間に30リクエスト)
+        if len(rate_limit_storage[client_ip]) >= 30:
+            return templates.TemplateResponse(
+                "rate_limit.html",
+                {"request": request},
+                status_code=429
+            )
+        
+        # リクエスト記録
+        rate_limit_storage[client_ip].append(current_time)
+        
+        return await call_next(request)
+
+# アプリに追加
+app.add_middleware(RateLimitMiddleware)
+# ↑↑↑ ここまで追加 ↑↑↑
     title="RPG BOT Web",
     version="1.0.0",
     default_response_class=UTF8JSONResponse

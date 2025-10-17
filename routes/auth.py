@@ -28,16 +28,16 @@ async def login(response: Response):
             {"error": "Discord認証が設定されていません。環境変数を確認してください。"},
             status_code=500
         )
-    
+
     state = secrets.token_urlsafe(32)
     state_expiry = datetime.utcnow() + timedelta(minutes=10)
-    
+
     state_data = jwt.encode(
         {"state": state, "exp": state_expiry},
         SECRET_KEY,
         algorithm=ALGORITHM
     )
-    
+
     auth_url = (
         f"{DISCORD_API_URL}/oauth2/authorize"
         f"?client_id={DISCORD_CLIENT_ID}"
@@ -46,7 +46,7 @@ async def login(response: Response):
         f"&scope=identify"
         f"&state={state}"
     )
-    
+
     redirect_response = RedirectResponse(auth_url)
     redirect_response.set_cookie(
         key="oauth_state",
@@ -63,51 +63,43 @@ async def login(response: Response):
 async def callback(code: str, state: str, request: Request):
     """Discord OAuth2 コールバック - CSRF保護とレート制限対策済み"""
     
-    # ↓↓↓ ここから追加 ↓↓↓
+    # OAuth2試行回数チェック
     from utils.security import get_client_ip
     import supabase_client
-    
+
     client_ip = get_client_ip(request)
-    
+
     # 1時間以内のOAuth2試行回数チェック (DoS対策)
     one_hour_ago = (datetime.utcnow() - timedelta(hours=1)).isoformat()
-    
+
     oauth_attempts = supabase_client.supabase.table("oauth_attempts").select("*").eq(
         "ip_address", client_ip
     ).gte("created_at", one_hour_ago).execute()
-    
+
     if oauth_attempts.data and len(oauth_attempts.data) >= 20:
         raise HTTPException(
             status_code=429,
             detail="OAuth2ログイン試行が多すぎます。1時間後に再試行してください。"
         )
-    
+
     # OAuth2試行を記録
     supabase_client.supabase.table("oauth_attempts").insert({
         "ip_address": client_ip,
         "created_at": datetime.utcnow().isoformat()
     }).execute()
-    # ↑↑↑ ここまで追加 ↑↑↑
-    
-    # 既存のコード (if not all([DISCORD_CLIENT_ID...]) から続く)
+
+    # 環境変数チェック
     if not all([DISCORD_CLIENT_ID, DISCORD_CLIENT_SECRET, REDIRECT_URI]):
         return JSONResponse(
             {"error": "Discord認証設定が不完全です"},
             status_code=500
         )
-    # ... 以下既存コード
-async def callback(code: str, state: str, request: Request):
-    """Discord OAuth2 コールバック - CSRF保護とレート制限対策済み"""
-    if not all([DISCORD_CLIENT_ID, DISCORD_CLIENT_SECRET, REDIRECT_URI]):
-        return JSONResponse(
-            {"error": "Discord認証設定が不完全です"},
-            status_code=500
-        )
-    
+
+    # CSRF保護
     state_cookie = request.cookies.get("oauth_state")
     if not state_cookie:
         raise HTTPException(status_code=403, detail="認証状態が見つかりません")
-    
+
     try:
         state_payload = jwt.decode(
             state_cookie,
@@ -116,15 +108,16 @@ async def callback(code: str, state: str, request: Request):
             options={"verify_exp": True}
         )
         expected_state = state_payload.get("state")
-        
+
         if not expected_state or expected_state != state:
             raise HTTPException(status_code=403, detail="無効なstateパラメータです")
-            
+
     except jwt.ExpiredSignatureError:
         raise HTTPException(status_code=403, detail="認証リクエストの有効期限が切れました")
     except JWTError:
         raise HTTPException(status_code=403, detail="認証状態の検証に失敗しました")
-    
+
+    # アクセストークン取得
     token_data = {
         "client_id": DISCORD_CLIENT_ID,
         "client_secret": DISCORD_CLIENT_SECRET,
@@ -150,7 +143,7 @@ async def callback(code: str, state: str, request: Request):
                 retry_after = e.response.headers.get("Retry-After")
                 wait_time = int(retry_after) if retry_after else (2 ** attempt)
                 await asyncio.sleep(wait_time)
-                
+
                 if attempt == 2:
                     return JSONResponse(
                         {"error": "レート制限により認証に失敗しました"},
@@ -180,20 +173,23 @@ async def callback(code: str, state: str, request: Request):
             status_code=400
         )
 
+    # ユーザー情報取得
     user_resp = requests.get(
         f"{DISCORD_API_URL}/users/@me",
         headers={"Authorization": f"Bearer {access_token}"}
     )
     user_resp.raise_for_status()
     user_data = user_resp.json()
-    
+
+    # JWTトークン生成
     expiration = datetime.utcnow() + timedelta(hours=24)
     token_payload = {
         "discord_id": user_data["id"],
         "exp": expiration
     }
     token = jwt.encode(token_payload, SECRET_KEY, algorithm=ALGORITHM)
-    
+
+    # リダイレクト + Cookie設定
     response = RedirectResponse(url="/dashboard", status_code=302)
     response.set_cookie(
         key="session_token",

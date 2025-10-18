@@ -1,77 +1,395 @@
-🛡️ 管理者ダッシュボード
-プレイヤー管理
-投稿管理
-DM監視
-通常画面に戻る
-ログアウト
-🔍 Discord ID 検索
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理者ダッシュボード - RPG BOT Web</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-danger">
+        <div class="container">
+            <a class="navbar-brand" href="/admin/dashboard">🛡️ 管理者ダッシュボード</a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link active" href="/admin/dashboard">プレイヤー管理</a>
+                <a class="nav-link" href="/admin/trade-posts">投稿管理</a>
+                <a class="nav-link" href="/admin/dm-monitor">DM監視</a>
+                <a class="nav-link" href="/dashboard">通常画面に戻る</a>
+                <form method="POST" action="/admin/logout" class="d-inline">
+                    <button type="submit" class="btn btn-outline-light btn-sm">ログアウト</button>
+                </form>
+            </div>
+        </div>
+    </nav>
 
-検索
+    <div class="container mt-4">
+        <!-- ID検索フォーム -->
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">🔍 Discord ID 検索</h5>
+            </div>
+            <div class="card-body">
+                <form id="searchForm" class="row g-3">
+                    <div class="col-md-8">
+                        <input type="text" class="form-control" id="searchInput" placeholder="Discord IDを入力 (例: 1301416493401243694)">
+                    </div>
+                    <div class="col-md-4">
+                        <button type="submit" class="btn btn-primary w-100">検索</button>
+                    </div>
+                </form>
+                <div id="searchResult" class="mt-3"></div>
+            </div>
+        </div>
 
-プレイヤー管理
-全プレイヤー一覧 ({{ players|length }}人)
-{% for player in players %} {% endfor %}
-Discord ID
-レベル
-BOT BAN
-Web BAN
-操作
-{{ player.user_id }}
-Lv.{{ player.level }}
-{% if player.bot_banned %} BAN中 {% else %} 正常 {% endif %}
-{% if player.web_banned %} BAN中 {% else %} 正常 {% endif %}
-{% if player.bot_banned %}
-BOT解除
-{% else %}
-BOT BAN
-{% endif %} {% if player.web_banned %}
-Web解除
-{% else %}
-Web BAN
-{% endif %}
-DM閲覧
-トレード管理
-進行中のトレード ({{ trades|length }}件)
-{% for trade in trades %} {% endfor %}
-ID
-送信者
-受信者
-ステータス
-操作
-{{ trade.id }}
-{{ trade.sender_id }}
-{{ trade.receiver_id }}
-{{ trade.status }}
-強制キャンセル
-📋 管理者アクションログ
-最近の操作 (最新20件)
-{% for log in admin_logs %} {% endfor %}
-日時
-管理者ID
-操作
-対象ID
-理由
-IP
-{{ log.created_at }}
-{{ log.admin_id }}
-{% if log.action == 'ban_bot' %} BOT BAN {% elif log.action == 'unban_bot' %} BOT 解除 {% elif log.action == 'ban_web' %} Web BAN {% elif log.action == 'unban_web' %} Web 解除 {% elif log.action == 'cancel_trade' %} トレードキャンセル {% elif log.action == 'delete_trade_post' %} 投稿削除 {% elif log.action == 'flag_dm' %} DMフラグ {% elif log.action == 'delete_dm' %} DM削除 {% else %} {{ log.action }} {% endif %}
-{{ log.target_id }}
-{{ log.reason }}
-{{ log.ip_address }}
-🚫 BAN履歴
-BAN/解除履歴 (最新20件)
-{% for ban in ban_history %} {% endfor %}
-ユーザーID
-種類
-理由
-実行者
-BAN日時
-解除日時
-状態
-{{ ban.user_id }}
-{% if ban.ban_type == 'bot' %} BOT {% else %} Web {% endif %}
-{{ ban.reason }}
-{{ ban.banned_by }}
-{{ ban.banned_at }}
-{{ ban.unbanned_at or '-' }}
-{% if ban.is_active %} 有効 {% else %} 解除済み {% endif %}
+        <h2>プレイヤー管理</h2>
+
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5>全プレイヤー一覧 ({{ players|length }}人)</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Discord ID</th>
+                                <th>レベル</th>
+                                <th>BOT BAN</th>
+                                <th>Web BAN</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for player in players %}
+                            <tr>
+                                <td><a href="/admin/player/{{ player.user_id }}">{{ player.user_id }}</a></td>
+                                <td>Lv.{{ player.level }}</td>
+                                <td>
+                                    {% if player.bot_banned %}
+                                    <span class="badge bg-danger">BAN中</span>
+                                    {% else %}
+                                    <span class="badge bg-success">正常</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if player.web_banned %}
+                                    <span class="badge bg-danger">BAN中</span>
+                                    {% else %}
+                                    <span class="badge bg-success">正常</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        {% if player.bot_banned %}
+                                        <button class="btn btn-success" onclick="unbanBot('{{ player.user_id }}')">BOT解除</button>
+                                        {% else %}
+                                        <button class="btn btn-danger" onclick="banBot('{{ player.user_id }}')">BOT BAN</button>
+                                        {% endif %}
+
+                                        {% if player.web_banned %}
+                                        <button class="btn btn-success" onclick="unbanWeb('{{ player.user_id }}')">Web解除</button>
+                                        {% else %}
+                                        <button class="btn btn-warning" onclick="banWeb('{{ player.user_id }}')">Web BAN</button>
+                                        {% endif %}
+
+                                        <a href="/admin/user-dm/{{ player.user_id }}" class="btn btn-info">DM閲覧</a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <h2>トレード管理</h2>
+
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5>進行中のトレード ({{ trades|length }}件)</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>送信者</th>
+                                <th>受信者</th>
+                                <th>ステータス</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for trade in trades %}
+                            <tr>
+                                <td>{{ trade.id }}</td>
+                                <td>{{ trade.sender_id }}</td>
+                                <td>{{ trade.receiver_id }}</td>
+                                <td><span class="badge bg-warning">{{ trade.status }}</span></td>
+                                <td>
+                                    <button class="btn btn-danger btn-sm" onclick="cancelTrade({{ trade.id }})">強制キャンセル</button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- 管理者アクションログ -->
+        <h2 class="mt-5">📋 管理者アクションログ</h2>
+
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5>最近の操作 (最新20件)</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-sm">
+                        <thead>
+                            <tr>
+                                <th>日時</th>
+                                <th>管理者ID</th>
+                                <th>操作</th>
+                                <th>対象ID</th>
+                                <th>理由</th>
+                                <th>IP</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for log in admin_logs %}
+                            <tr>
+                                <td>{{ log.created_at }}</td>
+                                <td>{{ log.admin_id }}</td>
+                                <td>
+                                    {% if log.action == 'ban_bot' %}
+                                    <span class="badge bg-danger">BOT BAN</span>
+                                    {% elif log.action == 'unban_bot' %}
+                                    <span class="badge bg-success">BOT 解除</span>
+                                    {% elif log.action == 'ban_web' %}
+                                    <span class="badge bg-warning">Web BAN</span>
+                                    {% elif log.action == 'unban_web' %}
+                                    <span class="badge bg-info">Web 解除</span>
+                                    {% elif log.action == 'cancel_trade' %}
+                                    <span class="badge bg-secondary">トレードキャンセル</span>
+                                    {% elif log.action == 'delete_trade_post' %}
+                                    <span class="badge bg-danger">投稿削除</span>
+                                    {% elif log.action == 'flag_dm' %}
+                                    <span class="badge bg-warning">DMフラグ</span>
+                                    {% elif log.action == 'delete_dm' %}
+                                    <span class="badge bg-danger">DM削除</span>
+                                    {% else %}
+                                    <span class="badge bg-secondary">{{ log.action }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ log.target_id }}</td>
+                                <td>{{ log.reason }}</td>
+                                <td><small>{{ log.ip_address }}</small></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- BAN履歴 -->
+        <h2 class="mt-5">🚫 BAN履歴</h2>
+
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5>BAN/解除履歴 (最新20件)</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-sm">
+                        <thead>
+                            <tr>
+                                <th>ユーザーID</th>
+                                <th>種類</th>
+                                <th>理由</th>
+                                <th>実行者</th>
+                                <th>BAN日時</th>
+                                <th>解除日時</th>
+                                <th>状態</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for ban in ban_history %}
+                            <tr>
+                                <td>{{ ban.user_id }}</td>
+                                <td>
+                                    {% if ban.ban_type == 'bot' %}
+                                    <span class="badge bg-danger">BOT</span>
+                                    {% else %}
+                                    <span class="badge bg-warning">Web</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ ban.reason }}</td>
+                                <td>{{ ban.banned_by }}</td>
+                                <td><small>{{ ban.banned_at }}</small></td>
+                                <td><small>{{ ban.unbanned_at or '-' }}</small></td>
+                                <td>
+                                    {% if ban.is_active %}
+                                    <span class="badge bg-danger">有効</span>
+                                    {% else %}
+                                    <span class="badge bg-secondary">解除済み</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // ID検索
+        document.getElementById('searchForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const discordId = document.getElementById('searchInput').value;
+            const resultDiv = document.getElementById('searchResult');
+
+            if (!discordId) {
+                resultDiv.innerHTML = '<div class="alert alert-warning">Discord IDを入力してください</div>';
+                return;
+            }
+
+            resultDiv.innerHTML = '<div class="spinner-border text-primary" role="status"></div>';
+
+            try {
+                // プレイヤー情報を検索（簡易実装: テーブルから検索）
+                const players = {{ players|tojson }};
+                const found = players.find(p => p.user_id === discordId);
+
+                if (found) {
+                    resultDiv.innerHTML = `
+                        <div class="alert alert-success">
+                            <h6>プレイヤーが見つかりました</h6>
+                            <p><strong>Discord ID:</strong> ${found.user_id}</p>
+                            <p><strong>レベル:</strong> ${found.level}</p>
+                            <a href="/admin/player/${found.user_id}" class="btn btn-primary btn-sm">詳細を見る</a>
+                            <a href="/admin/user-dm/${found.user_id}" class="btn btn-info btn-sm">DM閲覧</a>
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = '<div class="alert alert-danger">プレイヤーが見つかりませんでした</div>';
+                }
+            } catch (error) {
+                resultDiv.innerHTML = '<div class="alert alert-danger">エラーが発生しました</div>';
+            }
+        });
+
+        // BAN理由入力モーダル用
+        async function banBot(discordId) {
+            const reason = prompt(`Discord ID ${discordId} をBOT利用禁止にする理由を入力してください:`);
+            if (!reason || reason.trim() === '') {
+                alert('理由の入力は必須です');
+                return;
+            }
+
+            try {
+                const formData = new FormData();
+                formData.append('reason', reason);
+
+                const response = await fetch(`/admin/ban-bot/${discordId}`, { 
+                    method: 'POST',
+                    body: formData,
+                    credentials: 'include'
+                });
+                const data = await response.json();
+                alert(data.message);
+                location.reload();
+            } catch (error) {
+                alert('エラーが発生しました: ' + error.message);
+            }
+        }
+
+        async function banWeb(discordId) {
+            const reason = prompt(`Discord ID ${discordId} をWeb利用禁止にする理由を入力してください:`);
+            if (!reason || reason.trim() === '') {
+                alert('理由の入力は必須です');
+                return;
+            }
+
+            try {
+                const formData = new FormData();
+                formData.append('reason', reason);
+
+                const response = await fetch(`/admin/ban-web/${discordId}`, { 
+                    method: 'POST',
+                    body: formData,
+                    credentials: 'include'
+                });
+                const data = await response.json();
+                alert(data.message);
+                location.reload();
+            } catch (error) {
+                alert('エラーが発生しました: ' + error.message);
+            }
+        }
+
+        async function unbanBot(discordId) {
+            if (!confirm(`Discord ID ${discordId} のBOT利用禁止を解除しますか?`)) return;
+
+            try {
+                const response = await fetch(`/admin/unban-bot/${discordId}`, { 
+                    method: 'POST',
+                    credentials: 'include'
+                });
+                const data = await response.json();
+                alert(data.message);
+                location.reload();
+            } catch (error) {
+                alert('エラーが発生しました: ' + error.message);
+            }
+        }
+
+        async function unbanWeb(discordId) {
+            if (!confirm(`Discord ID ${discordId} のWeb利用禁止を解除しますか?`)) return;
+
+            try {
+                const response = await fetch(`/admin/unban-web/${discordId}`, { 
+                    method: 'POST',
+                    credentials: 'include'
+                });
+                const data = await response.json();
+                alert(data.message);
+                location.reload();
+            } catch (error) {
+                alert('エラーが発生しました: ' + error.message);
+            }
+        }
+
+        async function cancelTrade(tradeId) {
+            const reason = prompt(`トレードID ${tradeId} をキャンセルする理由を入力してください:`);
+            if (!reason || reason.trim() === '') {
+                alert('理由の入力は必須です');
+                return;
+            }
+
+            try {
+                const formData = new FormData();
+                formData.append('reason', reason);
+
+                const response = await fetch(`/admin/cancel-trade/${tradeId}`, {
+                    method: 'POST',
+                    body: formData,
+                    credentials: 'include'
+                });
+                const data = await response.json();
+                alert(data.message);
+                location.reload();
+            } catch (error) {
+                alert('エラーが発生しました: ' + error.message);
+            }
+        }
+    </script>
+</body>
+</html>

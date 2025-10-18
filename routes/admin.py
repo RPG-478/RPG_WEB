@@ -53,9 +53,9 @@ def initialize_recovery_password():
         if not RECOVERY_PASSWORD:
             print("⚠️ RECOVERY_PASSWORD環境変数が設定されていません")
             return
-        
+
         status = supabase_client.supabase.table("system_status").select("*").eq("id", 1).single().execute()
-        
+
         if status.data and not status.data.get("recovery_password_hash"):
             # ハッシュ化して保存
             hashed = argon2.hash(RECOVERY_PASSWORD)
@@ -73,7 +73,7 @@ async def send_discord_alert(message: str):
     """Discord Webhookで通知を送信"""
     if not DISCORD_WEBHOOK_URL:
         return
-    
+
     try:
         async with httpx.AsyncClient() as client:
             await client.post(DISCORD_WEBHOOK_URL, json={
@@ -88,17 +88,17 @@ async def admin_login_page(request: Request, session_token: str = Cookie(None)):
     # SAFE_MODEチェック
     if is_safe_mode_active():
         return RedirectResponse(url="/admin/recovery", status_code=302)
-    
+
     discord_id = get_discord_id_from_token(session_token)
-    
+
     # Discord OAuth2でログインしていない場合
     if not discord_id:
         return RedirectResponse(url="/auth/login", status_code=302)
-    
+
     # 管理者IDでない場合
     if discord_id != ADMIN_DISCORD_ID:
         raise HTTPException(status_code=403, detail="管理者権限がありません")
-    
+
     # アカウントロックチェック
     lock_status = check_account_lock(discord_id)
     if lock_status["locked"]:
@@ -107,11 +107,11 @@ async def admin_login_page(request: Request, session_token: str = Cookie(None)):
             "discord_id": discord_id,
             "error": f"アカウントがロックされています。解除時刻: {lock_status['unlock_at']}"
         })
-    
+
     # すでに認証済みの場合
     if request.cookies.get("admin_authenticated") == "true":
         return RedirectResponse(url="/admin/dashboard", status_code=302)
-    
+
     # パスワード入力画面
     return templates.TemplateResponse("admin_login.html", {
         "request": request,
@@ -124,13 +124,13 @@ async def admin_login(request: Request, password: str = Form(...), session_token
     # SAFE_MODEチェック
     if is_safe_mode_active():
         return RedirectResponse(url="/admin/recovery", status_code=302)
-    
+
     discord_id = get_discord_id_from_token(session_token)
     client_ip = get_client_ip(request)
-    
+
     if discord_id != ADMIN_DISCORD_ID:
         raise HTTPException(status_code=403, detail="管理者権限がありません")
-    
+
     # アカウントロックチェック
     lock_status = check_account_lock(discord_id)
     if lock_status["locked"]:
@@ -139,27 +139,27 @@ async def admin_login(request: Request, password: str = Form(...), session_token
             "discord_id": discord_id,
             "error": f"アカウントがロックされています。解除時刻: {lock_status['unlock_at']}"
         })
-    
+
     # パスワード検証
     if password != ADMIN_PASSWORD:
         # ログイン失敗を記録
         record_login_attempt(discord_id, client_ip, False)
-        
+
         # SAFE_MODE発動チェック
         if check_safe_mode_trigger():
             activate_safe_mode("複数IPから5回以上のログイン失敗を検出")
             await send_discord_alert(f"🚨 SAFE_MODE発動!\n複数IPから攻撃を検出しました。\n時刻: {datetime.utcnow().isoformat()}")
             return RedirectResponse(url="/admin/recovery", status_code=302)
-        
+
         return templates.TemplateResponse("admin_login.html", {
             "request": request,
             "discord_id": discord_id,
             "error": "パスワードが間違っています"
         })
-    
+
     # ログイン成功を記録
     record_login_attempt(discord_id, client_ip, True)
-    
+
     # 認証成功
     response = RedirectResponse(url="/admin/dashboard", status_code=302)
     response.set_cookie(
@@ -176,7 +176,7 @@ async def admin_login(request: Request, password: str = Form(...), session_token
 async def recovery_page(request: Request, session_token: str = Cookie(None)):
     """復旧ページ"""
     discord_id = get_discord_id_from_token(session_token)
-    
+
     # Discord OAuth2でログインしていない場合
     if not discord_id:
         return templates.TemplateResponse("system_locked.html", {
@@ -184,11 +184,11 @@ async def recovery_page(request: Request, session_token: str = Cookie(None)):
             "error": "Discord OAuth2認証が必要です",
             "needs_oauth": True
         })
-    
+
     # 管理者IDでない場合
     if discord_id != ADMIN_DISCORD_ID:
         raise HTTPException(status_code=403, detail="管理者権限がありません")
-    
+
     return templates.TemplateResponse("system_locked.html", {
         "request": request,
         "discord_id": discord_id
@@ -199,18 +199,18 @@ async def recovery_unlock(request: Request, recovery_password: str = Form(...), 
     """システム復旧処理"""
     discord_id = get_discord_id_from_token(session_token)
     client_ip = get_client_ip(request)
-    
+
     # Discord OAuth2認証チェック
     if discord_id != ADMIN_DISCORD_ID:
         await send_discord_alert(f"❌ 復旧失敗: 不正なDiscord ID\nIP: {client_ip}\n時刻: {datetime.utcnow().isoformat()}")
         raise HTTPException(status_code=403, detail="管理者権限がありません")
-    
+
     # レート制限チェック (1時間に3回)
     one_hour_ago = (datetime.utcnow() - timedelta(hours=1)).isoformat()
     recent_attempts = supabase_client.supabase.table("recovery_attempts").select("*").eq(
         "ip_address", client_ip
     ).gte("created_at", one_hour_ago).execute()
-    
+
     if recent_attempts.data and len(recent_attempts.data) >= 3:
         await send_discord_alert(f"⚠️ 復旧試行レート制限超過\nIP: {client_ip}\n時刻: {datetime.utcnow().isoformat()}")
         return templates.TemplateResponse("system_locked.html", {
@@ -218,12 +218,12 @@ async def recovery_unlock(request: Request, recovery_password: str = Form(...), 
             "discord_id": discord_id,
             "error": "復旧試行の回数制限に達しました (1時間に3回まで)"
         })
-    
+
     # 復旧パスワード検証 (Argon2)
     try:
         status = supabase_client.supabase.table("system_status").select("*").eq("id", 1).single().execute()
         stored_hash = status.data.get("recovery_password_hash")
-        
+
         if not stored_hash or not argon2.verify(recovery_password, stored_hash):
             # 失敗を記録
             supabase_client.supabase.table("recovery_attempts").insert({
@@ -232,15 +232,15 @@ async def recovery_unlock(request: Request, recovery_password: str = Form(...), 
                 "success": False,
                 "created_at": datetime.utcnow().isoformat()
             }).execute()
-            
+
             await send_discord_alert(f"❌ 復旧失敗: パスワード不一致\nDiscord ID: {discord_id}\nIP: {client_ip}\n時刻: {datetime.utcnow().isoformat()}")
-            
+
             return templates.TemplateResponse("system_locked.html", {
                 "request": request,
                 "discord_id": discord_id,
                 "error": "復旧パスワードが間違っています"
             })
-        
+
         # 成功を記録
         supabase_client.supabase.table("recovery_attempts").insert({
             "ip_address": client_ip,
@@ -248,18 +248,18 @@ async def recovery_unlock(request: Request, recovery_password: str = Form(...), 
             "success": True,
             "created_at": datetime.utcnow().isoformat()
         }).execute()
-        
+
         # SAFE_MODE解除
         supabase_client.supabase.table("system_status").update({
             "is_safe_mode": False,
             "locked_at": None,
             "locked_reason": None
         }).eq("id", 1).execute()
-        
+
         await send_discord_alert(f"✅ システム復旧成功\nDiscord ID: {discord_id}\nIP: {client_ip}\n時刻: {datetime.utcnow().isoformat()}")
-        
+
         return RedirectResponse(url="/admin", status_code=302)
-        
+
     except Exception as e:
         print(f"Error in recovery: {e}")
         await send_discord_alert(f"⚠️ 復旧処理エラー\nエラー: {str(e)}\n時刻: {datetime.utcnow().isoformat()}")
@@ -269,26 +269,26 @@ async def recovery_unlock(request: Request, recovery_password: str = Form(...), 
 async def admin_dashboard(request: Request, session_token: str = Cookie(None)):
     """管理者ダッシュボード"""
     discord_id = get_discord_id_from_token(session_token)
-    
+
     if not is_admin(discord_id, request):
         return RedirectResponse(url="/admin", status_code=302)
-    
+
     # 全プレイヤーデータ取得
     players_data = supabase_client.supabase.table("players").select("*").execute()
     players = players_data.data if players_data.data else []
-    
+
     # 進行中のトレード取得
     trades_data = supabase_client.supabase.table("trades").select("*").eq("status", "pending").execute()
     trades = trades_data.data if trades_data.data else []
-    
+
     # 管理者ログ取得 (最新20件)
     admin_logs_data = supabase_client.supabase.table("admin_logs").select("*").order("created_at", desc=True).limit(20).execute()
     admin_logs = admin_logs_data.data if admin_logs_data.data else []
-    
+
     # BAN履歴取得 (最新20件)
     ban_history_data = supabase_client.supabase.table("ban_history").select("*").order("banned_at", desc=True).limit(20).execute()
     ban_history = ban_history_data.data if ban_history_data.data else []
-    
+
     return templates.TemplateResponse("admin_dashboard.html", {
         "request": request,
         "discord_id": discord_id,
@@ -304,14 +304,14 @@ async def ban_bot_user(request: Request, discord_id: str, reason: str = Form(...
     admin_id = get_discord_id_from_token(session_token)
     if not is_admin(admin_id, request):
         raise HTTPException(status_code=403, detail="管理者権限がありません")
-    
+
     client_ip = get_client_ip(request)
-    
+
     # BANを実行
     supabase_client.supabase.table("players").update({
         "bot_banned": True
     }).eq("user_id", discord_id).execute()
-    
+
     # BAN履歴を記録
     supabase_client.supabase.table("ban_history").insert({
         "user_id": discord_id,
@@ -321,7 +321,7 @@ async def ban_bot_user(request: Request, discord_id: str, reason: str = Form(...
         "banned_at": datetime.utcnow().isoformat(),
         "is_active": True
     }).execute()
-    
+
     # 管理者ログを記録
     supabase_client.supabase.table("admin_logs").insert({
         "admin_id": admin_id,
@@ -331,7 +331,7 @@ async def ban_bot_user(request: Request, discord_id: str, reason: str = Form(...
         "ip_address": client_ip,
         "created_at": datetime.utcnow().isoformat()
     }).execute()
-    
+
     return JSONResponse({"message": f"Discord ID {discord_id} をBOT利用禁止にしました"})
 
 # 同様に unban_bot, ban_web, unban_web も修正...
@@ -343,7 +343,7 @@ async def admin_logout():
     response = RedirectResponse(url="/", status_code=302)
     response.delete_cookie("admin_authenticated")
     return response
-    
+
 # (admin.pyの続き - ban_bot_userの後に追加)
 
 @router.post("/admin/unban-bot/{discord_id}")
@@ -352,20 +352,20 @@ async def unban_bot_user(request: Request, discord_id: str, session_token: str =
     admin_id = get_discord_id_from_token(session_token)
     if not is_admin(admin_id, request):
         raise HTTPException(status_code=403, detail="管理者権限がありません")
-    
+
     client_ip = get_client_ip(request)
-    
+
     # BAN解除
     supabase_client.supabase.table("players").update({
         "bot_banned": False
     }).eq("user_id", discord_id).execute()
-    
+
     # BAN履歴を更新 (is_active = False, unbanned_at設定)
     supabase_client.supabase.table("ban_history").update({
         "is_active": False,
         "unbanned_at": datetime.utcnow().isoformat()
     }).eq("user_id", discord_id).eq("ban_type", "bot").eq("is_active", True).execute()
-    
+
     # 管理者ログを記録
     supabase_client.supabase.table("admin_logs").insert({
         "admin_id": admin_id,
@@ -375,7 +375,7 @@ async def unban_bot_user(request: Request, discord_id: str, session_token: str =
         "ip_address": client_ip,
         "created_at": datetime.utcnow().isoformat()
     }).execute()
-    
+
     return JSONResponse({"message": f"Discord ID {discord_id} のBOT利用禁止を解除しました"})
 
 @router.post("/admin/ban-web/{discord_id}")
@@ -384,14 +384,14 @@ async def ban_web_user(request: Request, discord_id: str, reason: str = Form(...
     admin_id = get_discord_id_from_token(session_token)
     if not is_admin(admin_id, request):
         raise HTTPException(status_code=403, detail="管理者権限がありません")
-    
+
     client_ip = get_client_ip(request)
-    
+
     # BANを実行
     supabase_client.supabase.table("players").update({
         "web_banned": True
     }).eq("user_id", discord_id).execute()
-    
+
     # BAN履歴を記録
     supabase_client.supabase.table("ban_history").insert({
         "user_id": discord_id,
@@ -401,7 +401,7 @@ async def ban_web_user(request: Request, discord_id: str, reason: str = Form(...
         "banned_at": datetime.utcnow().isoformat(),
         "is_active": True
     }).execute()
-    
+
     # 管理者ログを記録
     supabase_client.supabase.table("admin_logs").insert({
         "admin_id": admin_id,
@@ -411,7 +411,7 @@ async def ban_web_user(request: Request, discord_id: str, reason: str = Form(...
         "ip_address": client_ip,
         "created_at": datetime.utcnow().isoformat()
     }).execute()
-    
+
     return JSONResponse({"message": f"Discord ID {discord_id} をWeb利用禁止にしました"})
 
 @router.post("/admin/unban-web/{discord_id}")
@@ -420,20 +420,20 @@ async def unban_web_user(request: Request, discord_id: str, session_token: str =
     admin_id = get_discord_id_from_token(session_token)
     if not is_admin(admin_id, request):
         raise HTTPException(status_code=403, detail="管理者権限がありません")
-    
+
     client_ip = get_client_ip(request)
-    
+
     # BAN解除
     supabase_client.supabase.table("players").update({
         "web_banned": False
     }).eq("user_id", discord_id).execute()
-    
+
     # BAN履歴を更新
     supabase_client.supabase.table("ban_history").update({
         "is_active": False,
         "unbanned_at": datetime.utcnow().isoformat()
     }).eq("user_id", discord_id).eq("ban_type", "web").eq("is_active", True).execute()
-    
+
     # 管理者ログを記録
     supabase_client.supabase.table("admin_logs").insert({
         "admin_id": admin_id,
@@ -443,7 +443,7 @@ async def unban_web_user(request: Request, discord_id: str, session_token: str =
         "ip_address": client_ip,
         "created_at": datetime.utcnow().isoformat()
     }).execute()
-    
+
     return JSONResponse({"message": f"Discord ID {discord_id} のWeb利用禁止を解除しました"})
 
 @router.post("/admin/cancel-trade/{trade_id}")
@@ -452,23 +452,23 @@ async def cancel_trade(request: Request, trade_id: int, session_token: str = Coo
     admin_id = get_discord_id_from_token(session_token)
     if not is_admin(admin_id, request):
         raise HTTPException(status_code=403, detail="管理者権限がありません")
-    
+
     client_ip = get_client_ip(request)
-    
+
     # トレード情報取得
     trade = supabase_client.supabase.table("trades").select("*").eq("id", trade_id).single().execute()
-    
+
     if not trade.data:
         raise HTTPException(status_code=404, detail="トレードが見つかりません")
-    
+
     # 保留解除
     supabase_client.supabase.table("trade_holds").delete().eq("trade_id", trade_id).execute()
-    
+
     # トレードステータスを cancelled に
     supabase_client.supabase.table("trades").update({
         "status": "cancelled"
     }).eq("id", trade_id).execute()
-    
+
     # 管理者ログを記録
     supabase_client.supabase.table("admin_logs").insert({
         "admin_id": admin_id,
@@ -478,7 +478,7 @@ async def cancel_trade(request: Request, trade_id: int, session_token: str = Coo
         "ip_address": client_ip,
         "created_at": datetime.utcnow().isoformat()
     }).execute()
-    
+
     return JSONResponse({"message": f"トレード ID {trade_id} を強制キャンセルしました"})
 
 @router.get("/admin/player/{discord_id}", response_class=HTMLResponse)
@@ -487,13 +487,13 @@ async def view_player_data(request: Request, discord_id: str, session_token: str
     admin_id = get_discord_id_from_token(session_token)
     if not is_admin(admin_id, request):
         return RedirectResponse(url="/admin", status_code=302)
-    
+
     # プレイヤーデータ取得
     player_data = supabase_client.supabase.table("players").select("*").eq("user_id", discord_id).single().execute()
-    
+
     if not player_data.data:
         raise HTTPException(status_code=404, detail="プレイヤーが見つかりません")
-    
+
     return templates.TemplateResponse("admin_player_detail.html", {
         "request": request,
         "discord_id": admin_id,

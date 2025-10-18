@@ -1,277 +1,75 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>トレード - RPG BOT Web</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="/static/css/style.css" rel="stylesheet">
-</head>
-<body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <div class="container">
-            <a class="navbar-brand" href="/">RPG BOT Web</a>
-            <div class="navbar-nav ms-auto">
-                <a class="nav-link" href="/dashboard">ダッシュボード</a>
-                <a class="nav-link active" href="/trade">トレード</a>
-                <a class="nav-link" href="/auth/logout">ログアウト</a>
-            </div>
-        </div>
-    </nav>
+RPG BOT Web
+ダッシュボード
+トレード
+ログアウト
+🤝 トレードシステム
+📤 新規トレード提案
+相手のDiscord ID
 
-    <div class="container mt-4">
-        <h1 class="mb-4">🤝 トレードシステム</h1>
+あなたが渡すアイテム (複数選択可) {% if available_inventory and available_inventory|length > 0 %}
+{% for item in available_inventory %}
 
-        <!-- 新規トレード提案 -->
-        <div class="row mb-4">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-header bg-primary text-white">
-                        <h5 class="mb-0">📤 新規トレード提案</h5>
-                    </div>
-                    <div class="card-body">
-                        <form method="POST" action="/trade/request">
-                            <div class="mb-3">
-                                <label for="receiver_id" class="form-label">相手のDiscord ID</label>
-                                <input type="text" class="form-control" id="receiver_id" name="receiver_id" placeholder="例: 1234567890" required>
-                            </div>
-                            
-                            <div class="mb-3">
-                                <label class="form-label">あなたが渡すアイテム (複数選択可)</label>
-                                {% if available_inventory and available_inventory|length > 0 %}
-                                    <div class="border rounded p-3" style="max-height: 200px; overflow-y: auto;">
-                                        {% for item in available_inventory %}
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="checkbox" name="item_names" value="{{ item }}" id="item_{{ loop.index }}">
-                                                <label class="form-check-label" for="item_{{ loop.index }}">
-                                                    {{ item }}
-                                                </label>
-                                            </div>
-                                        {% endfor %}
-                                    </div>
-                                {% else %}
-                                    <p class="text-muted">送信可能なアイテムがありません</p>
-                                {% endif %}
-                                
-                                {% if held_items and held_items|length > 0 %}
-                                <small class="text-warning d-block mt-2">
-                                    ⏳ 保留中: {{ held_items|join(', ') }}
-                                </small>
-                                {% endif %}
-                            </div>
-                            
-                            <button type="submit" class="btn btn-primary" {% if not available_inventory %}disabled{% endif %}>
-                                📨 トレード提案を送信
-                            </button>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
+{{ item }}
+{% endfor %}
+{% else %}
+送信可能なアイテムがありません
+{% endif %} {% if held_items and held_items|length > 0 %}
+⏳ 保留中: {{ held_items|join(', ') }}
+{% endif %}
+📨 トレード提案を送信
+📥 受信したトレード提案
+{% if my_trades and my_trades.received_pending %} {% for trade in my_trades.received_pending %}
+待機中 送信者: {{ trade.sender_id }}
+相手が渡すアイテム: {{ trade.sender_items|join(', ') if trade.sender_items else 'なし' }}
+申請日時: {{ trade.created_at }}
+あなたが渡すアイテムを選択: {% if available_inventory and available_inventory|length > 0 %}
+{% for item in available_inventory %}
 
-        <!-- 受信したトレード提案 (待機中) -->
-        <div class="row mb-4">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-header bg-warning text-dark">
-                        <h5 class="mb-0">📥 受信したトレード提案</h5>
-                    </div>
-                    <div class="card-body">
-                        {% if my_trades and my_trades.received_pending %}
-                            {% for trade in my_trades.received_pending %}
-                                <div class="card mb-3 border-warning">
-                                    <div class="card-body">
-                                        <h6 class="card-title">
-                                            <span class="badge bg-warning text-dark">待機中</span>
-                                            送信者: {{ trade.sender_id }}
-                                        </h6>
-                                        <p class="mb-2">
-                                            <strong>相手が渡すアイテム:</strong> 
-                                            {{ trade.sender_items|join(', ') if trade.sender_items else 'なし' }}
-                                        </p>
-                                        <p class="text-muted mb-3">申請日時: {{ trade.created_at }}</p>
-                                        
-                                        <form method="POST" action="/trade/{{ trade.id }}/receiver-respond">
-                                            <div class="mb-3">
-                                                <label class="form-label">あなたが渡すアイテムを選択:</label>
-                                                {% if available_inventory and available_inventory|length > 0 %}
-                                                    <div class="border rounded p-3" style="max-height: 150px; overflow-y: auto;">
-                                                        {% for item in available_inventory %}
-                                                            <div class="form-check">
-                                                                <input class="form-check-input" type="checkbox" name="item_names" value="{{ item }}" id="recv_{{ trade.id }}_{{ loop.index }}">
-                                                                <label class="form-check-label" for="recv_{{ trade.id }}_{{ loop.index }}">
-                                                                    {{ item }}
-                                                                </label>
-                                                            </div>
-                                                        {% endfor %}
-                                                    </div>
-                                                {% else %}
-                                                    <p class="text-muted">渡せるアイテムがありません</p>
-                                                {% endif %}
-                                            </div>
-                                            
-                                            <button type="submit" name="action" value="accept" class="btn btn-success">✅ 承認してアイテムを提示</button>
-                                            <button type="submit" name="action" value="reject" class="btn btn-danger">❌ 拒否</button>
-                                        </form>
-                                    </div>
-                                </div>
-                            {% endfor %}
-                        {% else %}
-                            <p class="text-muted">受信したトレード提案はありません</p>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- 送信したトレード (相手の返答待ち) -->
-        <div class="row mb-4">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-header bg-info text-white">
-                        <h5 class="mb-0">📤 送信したトレード (相手の返答待ち)</h5>
-                    </div>
-                    <div class="card-body">
-                        {% if my_trades and my_trades.sent_waiting_receiver %}
-                            {% for trade in my_trades.sent_waiting_receiver %}
-                                <div class="card mb-3 border-info">
-                                    <div class="card-body">
-                                        <h6 class="card-title">
-                                            <span class="badge bg-info">相手待ち</span>
-                                            受信者: {{ trade.receiver_id }}
-                                        </h6>
-                                        <p class="mb-2">
-                                            <strong>あなたが渡すアイテム:</strong> 
-                                            {{ trade.sender_items|join(', ') }}
-                                        </p>
-                                        <p class="text-muted">申請日時: {{ trade.created_at }}</p>
-                                    </div>
-                                </div>
-                            {% endfor %}
-                        {% else %}
-                            <p class="text-muted">相手の返答待ちのトレードはありません</p>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- 送信したトレード (あなたの最終確認待ち) -->
-        <div class="row mb-4">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-header bg-success text-white">
-                        <h5 class="mb-0">✅ あなたの最終確認待ち</h5>
-                    </div>
-                    <div class="card-body">
-                        {% if my_trades and my_trades.sent_waiting_sender %}
-                            {% for trade in my_trades.sent_waiting_sender %}
-                                <div class="card mb-3 border-success">
-                                    <div class="card-body">
-                                        <h6 class="card-title">
-                                            <span class="badge bg-success">最終確認</span>
-                                            受信者: {{ trade.receiver_id }}
-                                        </h6>
-                                        <div class="row">
-                                            <div class="col-md-6">
-                                                <p class="mb-2">
-                                                    <strong>あなたが渡すアイテム:</strong><br>
-                                                    {{ trade.sender_items|join(', ') }}
-                                                </p>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <p class="mb-2">
-                                                    <strong>相手が渡すアイテム:</strong><br>
-                                                    {{ trade.receiver_items|join(', ') if trade.receiver_items else 'なし' }}
-                                                </p>
-                                            </div>
-                                        </div>
-                                        <p class="text-muted mb-3">申請日時: {{ trade.created_at }}</p>
-                                        
-                                        <form method="POST" action="/trade/{{ trade.id }}/sender-approve" class="d-inline">
-                                            <button type="submit" name="action" value="approve" class="btn btn-success">✅ 承認してトレード完了</button>
-                                            <button type="submit" name="action" value="reject" class="btn btn-danger">❌ キャンセル</button>
-                                        </form>
-                                    </div>
-                                </div>
-                            {% endfor %}
-                        {% else %}
-                            <p class="text-muted">最終確認待ちのトレードはありません</p>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- トレード履歴 -->
-        <div class="row mb-4">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-header bg-secondary text-white">
-                        <h5 class="mb-0">📜 トレード履歴</h5>
-                    </div>
-                    <div class="card-body">
-                        {% if trade_history and trade_history|length > 0 %}
-                            <div class="table-responsive">
-                                <table class="table table-striped">
-                                    <thead>
-                                        <tr>
-                                            <th>送信者</th>
-                                            <th>受信者</th>
-                                            <th>送信者アイテム</th>
-                                            <th>受信者アイテム</th>
-                                            <th>ステータス</th>
-                                            <th>日時</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {% for trade in trade_history %}
-                                            <tr>
-                                                <td>{{ trade.sender_id }}</td>
-                                                <td>{{ trade.receiver_id }}</td>
-                                                <td>{{ trade.sender_items|join(', ') if trade.sender_items else '-' }}</td>
-                                                <td>{{ trade.receiver_items|join(', ') if trade.receiver_items else '-' }}</td>
-                                                <td>
-                                                    {% if trade.status == 'pending' %}
-                                                        <span class="badge bg-warning">保留中</span>
-                                                    {% elif trade.status == 'completed' %}
-                                                        <span class="badge bg-success">完了</span>
-                                                    {% elif trade.status == 'rejected' %}
-                                                        <span class="badge bg-danger">拒否</span>
-                                                    {% elif trade.status == 'expired' %}
-                                                        <span class="badge bg-secondary">期限切れ</span>
-                                                    {% endif %}
-                                                </td>
-                                                <td>{{ trade.created_at }}</td>
-                                            </tr>
-                                        {% endfor %}
-                                    </tbody>
-                                </table>
-                            </div>
-                        {% else %}
-                            <p class="text-muted">トレード履歴がありません</p>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="mt-3">
-            <a href="/dashboard" class="btn btn-outline-secondary">📊 ダッシュボードに戻る</a>
-        </div>
-    </div>
-
-    <footer class="bg-dark text-white py-3 mt-5">
-        <div class="container text-center">
-            <p class="mb-2">&copy; 2025 RPG BOT Web. All rights reserved.</p>
-            <p class="mb-0">
-                <a href="/terms" class="text-white text-decoration-none me-3">Web利用規約</a>
-                <a href="/bot-terms" class="text-white text-decoration-none me-3">BOT利用規約</a>
-                <a href="/privacy" class="text-white text-decoration-none">プライバシーポリシー</a>
-            </p>
-        </div>
-    </footer>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+{{ item }}
+{% endfor %}
+{% else %}
+渡せるアイテムがありません
+{% endif %}
+✅ 承認してアイテムを提示 ❌ 拒否
+{% endfor %} {% else %}
+受信したトレード提案はありません
+{% endif %}
+📤 送信したトレード (相手の返答待ち)
+{% if my_trades and my_trades.sent_waiting_receiver %} {% for trade in my_trades.sent_waiting_receiver %}
+相手待ち 受信者: {{ trade.receiver_id }}
+あなたが渡すアイテム: {{ trade.sender_items|join(', ') }}
+申請日時: {{ trade.created_at }}
+{% endfor %} {% else %}
+相手の返答待ちのトレードはありません
+{% endif %}
+✅ あなたの最終確認待ち
+{% if my_trades and my_trades.sent_waiting_sender %} {% for trade in my_trades.sent_waiting_sender %}
+最終確認 受信者: {{ trade.receiver_id }}
+あなたが渡すアイテム: {{ trade.sender_items|join(', ') }}
+相手が渡すアイテム: {{ trade.receiver_items|join(', ') if trade.receiver_items else 'なし' }}
+申請日時: {{ trade.created_at }}
+✅ 承認してトレード完了 ❌ キャンセル
+{% endfor %} {% else %}
+最終確認待ちのトレードはありません
+{% endif %}
+📜 トレード履歴
+{% if trade_history and trade_history|length > 0 %}
+{% for trade in trade_history %} {% endfor %}
+送信者
+受信者
+送信者アイテム
+受信者アイテム
+ステータス
+日時
+{{ trade.sender_id }}
+{{ trade.receiver_id }}
+{{ trade.sender_items|join(', ') if trade.sender_items else '-' }}
+{{ trade.receiver_items|join(', ') if trade.receiver_items else '-' }}
+{% if trade.status == 'pending' %} 保留中 {% elif trade.status == 'completed' %} 完了 {% elif trade.status == 'rejected' %} 拒否 {% elif trade.status == 'expired' %} 期限切れ {% endif %}
+{{ trade.created_at }}
+{% else %}
+トレード履歴がありません
+{% endif %}
+📊 ダッシュボードに戻る
+© 2025 RPG BOT Web. All rights reserved.
+Web利用規約 BOT利用規約 プライバシーポリシー

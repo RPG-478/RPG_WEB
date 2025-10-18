@@ -1,7 +1,7 @@
 import json
 from typing import Any
 from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -29,8 +29,8 @@ rate_limit_storage = defaultdict(list)
 
 class RateLimitMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
-        # 管理画面は別のセキュリティで守られているのでスキップ
-        if request.url.path.startswith("/admin"):
+        # ヘルスチェックと管理画面はスキップ
+        if request.url.path in ["/health", "/"] or request.url.path.startswith("/admin"):
             return await call_next(request)
 
         # IPアドレス取得
@@ -81,6 +81,32 @@ app.add_middleware(
     secret_key=os.getenv("SESSION_SECRET", "your-secret-key-here-change-in-production")
 )
 
+# ========================================
+# ヘルスチェックエンドポイント (UptimeRobot対応)
+# ========================================
+
+@app.get("/health", response_class=PlainTextResponse)
+@app.head("/health", response_class=PlainTextResponse)
+async def health_check():
+    """
+    ヘルスチェックエンドポイント
+    UptimeRobotやRenderの監視に使用
+    HEADとGETリクエストの両方に対応
+    """
+    return "OK"
+
+@app.head("/")
+async def root_head():
+    """
+    ルートパスのHEADリクエスト対応
+    一部の監視ツールはルートパスを使用する
+    """
+    return PlainTextResponse("OK", status_code=200)
+
+# ========================================
+# トップページ
+# ========================================
+
 @app.get("/", response_class=HTMLResponse)
 async def root(request: Request):
     """トップページ"""
@@ -115,24 +141,53 @@ async def force_json_headers(request, call_next):
             del response.headers["content-disposition"]
     return response
 
-from fastapi import BackgroundTasks
-import supabase_client
-import asyncio
-
+# スタートアップイベント（Supabase接続時のみ有効）
 @app.on_event("startup")
 async def startup_event():
-    """アプリ起動時に期限切れ保留をクリーンアップ"""
-    supabase_client.cleanup_expired_holds()
-    # トレード投稿のクリーンアップも追加
-    supabase_client.cleanup_expired_trade_posts()
+    """アプリ起動時の処理"""
+    print("=" * 50)
+    print("✅ RPG BOT Web サーバー起動完了")
+    print("📍 ヘルスチェックエンドポイント: /health")
+    print("📍 ルートパス: /")
+    print("=" * 50)
+    
+    # 環境変数チェック
+    required_env = ["SUPABASE_URL", "SUPABASE_KEY", "SESSION_SECRET"]
+    missing_env = [env for env in required_env if not os.getenv(env)]
+    
+    if missing_env:
+        print(f"⚠️  未設定の環境変数: {', '.join(missing_env)}")
+        print("⚠️  データベース機能は利用できません")
+        print("💡 Render.comデプロイ時は環境変数を設定してください")
+    else:
+        # Supabase設定がある場合のみクリーンアップを実行
+        try:
+            import supabase_client
+            if supabase_client.get_supabase_client() is not None:
+                supabase_client.cleanup_expired_holds()
+                supabase_client.cleanup_expired_trade_posts()
+                print("✅ 期限切れデータのクリーンアップ完了")
+        except Exception as e:
+            print(f"⚠️  Supabaseクリーンアップエラー: {e}")
+    
+    print("=" * 50)
 
 # 定期的にクリーンアップ(オプション)
+import asyncio
+
 async def periodic_cleanup():
     while True:
         await asyncio.sleep(3600)  # 1時間ごと
-        supabase_client.cleanup_expired_holds()
-        supabase_client.cleanup_expired_trade_posts()
+        try:
+            import supabase_client
+            supabase_client.cleanup_expired_holds()
+            supabase_client.cleanup_expired_trade_posts()
+        except Exception as e:
+            print(f"定期クリーンアップエラー: {e}")
 
 @app.on_event("startup")
 async def start_periodic_tasks():
-    asyncio.create_task(periodic_cleanup())
+    try:
+        asyncio.create_task(periodic_cleanup())
+    except Exception as e:
+        print(f"定期タスク起動エラー: {e}")

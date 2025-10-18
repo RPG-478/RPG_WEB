@@ -6,13 +6,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from starlette.middleware.sessions import SessionMiddleware
-from datetime import datetime, timedelta  # ← ここに移動
-from collections import defaultdict
-from starlette.middleware.base import BaseHTTPMiddleware
-import os
+from starlette.middleware.sessions import SessionMiddleware  # ← 追加!
+import os  # ← 追加!
 
-from routes import status, trade, auth, legal, admin
+from routes import status, trade, auth, legal, admin  
 
 class UTF8JSONResponse(JSONResponse):
     media_type = "application/json; charset=utf-8"
@@ -23,6 +20,12 @@ class UTF8JSONResponse(JSONResponse):
             ensure_ascii=False,
             separators=(",", ":")
         ).encode("utf-8")
+
+app = FastAPI(
+# ↓↓↓ この部分を追加 ↓↓↓
+from datetime import datetime, timedelta
+from collections import defaultdict
+from starlette.middleware.base import BaseHTTPMiddleware
 
 # グローバルレート制限 (メモリベース)
 rate_limit_storage = defaultdict(list)
@@ -60,8 +63,9 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
 
         return await call_next(request)
 
-# FastAPIアプリ作成
-app = FastAPI(
+# アプリに追加
+app.add_middleware(RateLimitMiddleware)
+# ↑↑↑ ここまで追加 ↑↑↑
     title="RPG BOT Web",
     version="1.0.0",
     default_response_class=UTF8JSONResponse
@@ -70,10 +74,7 @@ app = FastAPI(
 templates = Jinja2Templates(directory="templates")
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-# アプリにレート制限ミドルウェアを追加
-app.add_middleware(RateLimitMiddleware)
-
-# SessionMiddleware を追加
+# SessionMiddleware を追加 ← これを追加!
 app.add_middleware(
     SessionMiddleware,
     secret_key=os.getenv("SESSION_SECRET", "your-secret-key-here-change-in-production")
@@ -111,7 +112,6 @@ async def force_json_headers(request, call_next):
 
 from fastapi import BackgroundTasks
 import supabase_client
-import asyncio
 
 @app.on_event("startup")
 async def startup_event():
@@ -119,6 +119,8 @@ async def startup_event():
     supabase_client.cleanup_expired_holds()
 
 # 定期的にクリーンアップ(オプション)
+import asyncio
+
 async def periodic_cleanup():
     while True:
         await asyncio.sleep(3600)  # 1時間ごと
@@ -127,5 +129,6 @@ async def periodic_cleanup():
 @app.on_event("startup")
 async def start_periodic_tasks():
     asyncio.create_task(periodic_cleanup())
+
 
 app.include_router(admin.router, tags=["admin"])

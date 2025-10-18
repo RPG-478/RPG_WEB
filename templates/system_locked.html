@@ -33,11 +33,11 @@
     <div class="lock-container">
         <div class="lock-icon">🔒</div>
         <h2 class="text-center text-danger mb-4">SAFE_MODE 発動中</h2>
-        
+
         {% if error %}
         <div class="alert alert-danger">{{ error }}</div>
         {% endif %}
-        
+
         {% if needs_oauth %}
         <div class="alert alert-warning">
             <strong>⚠️ Discord OAuth2認証が必要です</strong>
@@ -54,19 +54,19 @@
                 <li>復旧パスワードを入力 ⬇️</li>
             </ol>
         </div>
-        
+
         <p class="text-muted mb-3">Discord ID: <strong>{{ discord_id }}</strong></p>
-        
+
         <form method="POST" action="/admin/recovery">
             <div class="mb-3">
                 <label for="recovery_password" class="form-label">復旧パスワード</label>
                 <input type="password" class="form-control form-control-lg" id="recovery_password" name="recovery_password" required autofocus>
                 <small class="text-muted">環境変数 RECOVERY_PASSWORD に設定されたパスワードを入力してください</small>
             </div>
-            
+
             <button type="submit" class="btn btn-danger w-100 btn-lg">🔓 システムロック解除</button>
         </form>
-        
+
         <div class="alert alert-warning mt-4">
             <strong>⚠️ セキュリティ通知</strong>
             <ul class="mb-0 mt-2">

@@ -18,10 +18,10 @@
                         {% if error %}
                         <div class="alert alert-danger">{{ error }}</div>
                         {% endif %}
-                        
+
                         <p>Discord ID: <strong>{{ discord_id }}</strong></p>
                         <p class="text-muted">管理者パスワードを入力してください</p>
-                        
+
                         <form method="POST" action="/admin/login">
                             <div class="mb-3">
                                 <label for="password" class="form-label">パスワード</label>

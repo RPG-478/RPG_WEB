@@ -1,0 +1,51 @@
+RPG BOT Web
+ダッシュボード
+トレード
+掲示板
+DM
+ログアウト
+📢 トレード掲示板
+📝 新規投稿（5分に1回まで）
+タイトル
+
+提供するアイテム（複数選択可） {% if available_inventory and available_inventory|length > 0 %}
+{% for item in available_inventory %}
+
+{{ item }}
+{% endfor %}
+{% else %}
+提供できるアイテムがありません
+{% endif %}
+希望するアイテム
+
+メッセージ（任意）
+📤 投稿する
+{% if my_posts and my_posts|length > 0 %}
+📋 あなたの投稿
+{% for post in my_posts %}
+{{ post.title }}
+提供: {{ post.offering_items|join(', ') }}
+希望: {{ post.wanting_items }}
+{% if post.message %}
+メッセージ: {{ post.message }}
+{% endif %}
+投稿日時: {{ post.created_at }}
+🗑️ 削除
+{% endfor %}
+{% endif %}
+🌐 募集中のトレード（{{ posts|length }}件）
+{% if posts and posts|length > 0 %} {% for post in posts %}
+{{ post.title }} {% if post.user_id == discord_id %} あなたの投稿 {% endif %}
+投稿者: {{ post.user_id }}
+提供: {{ post.offering_items|join(', ') }}
+希望: {{ post.wanting_items }}
+{% if post.message %}
+メッセージ: {{ post.message }}
+{% endif %}
+投稿日時: {{ post.created_at }}
+{% if post.user_id != discord_id %} 💬 DMを送る {% endif %}
+{% endfor %} {% else %}
+現在募集中のトレードはありません
+{% endif %}
+© 2025 RPG BOT Web. All rights reserved.
+Web利用規約 BOT利用規約 プライバシーポリシー

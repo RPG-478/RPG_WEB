@@ -63,7 +63,7 @@ async def login(response: Response):
 async def callback(code: str, state: str, request: Request):
     """Discord OAuth2 コールバック - CSRF保護とレート制限対策済み"""
 
-    # ↓↓↓ ここから追加 ↓↓↓
+    # OAuth2試行回数チェック
     from utils.security import get_client_ip
     import supabase_client
 
@@ -72,38 +72,34 @@ async def callback(code: str, state: str, request: Request):
     # 1時間以内のOAuth2試行回数チェック (DoS対策)
     one_hour_ago = (datetime.utcnow() - timedelta(hours=1)).isoformat()
 
-    oauth_attempts = supabase_client.supabase.table("oauth_attempts").select("*").eq(
-        "ip_address", client_ip
-    ).gte("created_at", one_hour_ago).execute()
+    try:
+        oauth_attempts = supabase_client.supabase.table("oauth_attempts").select("*").eq(
+            "ip_address", client_ip
+        ).gte("created_at", one_hour_ago).execute()
 
-    if oauth_attempts.data and len(oauth_attempts.data) >= 20:
-        raise HTTPException(
-            status_code=429,
-            detail="OAuth2ログイン試行が多すぎます。1時間後に再試行してください。"
-        )
+        if oauth_attempts.data and len(oauth_attempts.data) >= 20:
+            raise HTTPException(
+                status_code=429,
+                detail="OAuth2ログイン試行が多すぎます。1時間後に再試行してください。"
+            )
 
-    # OAuth2試行を記録
-    supabase_client.supabase.table("oauth_attempts").insert({
-        "ip_address": client_ip,
-        "created_at": datetime.utcnow().isoformat()
-    }).execute()
-    # ↑↑↑ ここまで追加 ↑↑↑
+        # OAuth2試行を記録
+        supabase_client.supabase.table("oauth_attempts").insert({
+            "ip_address": client_ip,
+            "created_at": datetime.utcnow().isoformat()
+        }).execute()
+    except Exception as e:
+        print(f"Warning: OAuth attempt tracking failed: {e}")
+        # 記録失敗は致命的ではないので続行
 
-    # 既存のコード (if not all([DISCORD_CLIENT_ID...]) から続く)
+    # 環境変数チェック
     if not all([DISCORD_CLIENT_ID, DISCORD_CLIENT_SECRET, REDIRECT_URI]):
         return JSONResponse(
             {"error": "Discord認証設定が不完全です"},
             status_code=500
         )
-    # ... 以下既存コード
-async def callback(code: str, state: str, request: Request):
-    """Discord OAuth2 コールバック - CSRF保護とレート制限対策済み"""
-    if not all([DISCORD_CLIENT_ID, DISCORD_CLIENT_SECRET, REDIRECT_URI]):
-        return JSONResponse(
-            {"error": "Discord認証設定が不完全です"},
-            status_code=500
-        )
 
+    # CSRF保護
     state_cookie = request.cookies.get("oauth_state")
     if not state_cookie:
         raise HTTPException(status_code=403, detail="認証状態が見つかりません")
@@ -125,6 +121,7 @@ async def callback(code: str, state: str, request: Request):
     except JWTError:
         raise HTTPException(status_code=403, detail="認証状態の検証に失敗しました")
 
+    # アクセストークン取得
     token_data = {
         "client_id": DISCORD_CLIENT_ID,
         "client_secret": DISCORD_CLIENT_SECRET,
@@ -141,7 +138,8 @@ async def callback(code: str, state: str, request: Request):
             token_resp = requests.post(
                 f"{DISCORD_API_URL}/oauth2/token",
                 data=token_data,
-                headers=headers
+                headers=headers,
+                timeout=10
             )
             token_resp.raise_for_status()
             break
@@ -157,11 +155,13 @@ async def callback(code: str, state: str, request: Request):
                         status_code=429
                     )
             else:
+                print(f"Discord API Error: {e.response.status_code} - {e.response.text}")
                 return JSONResponse(
                     {"error": f"Discord API Error: {e.response.status_code}"},
                     status_code=e.response.status_code
                 )
         except requests.exceptions.RequestException as e:
+            print(f"Network Error: {str(e)}")
             return JSONResponse(
                 {"error": f"ネットワークエラー: {str(e)}"},
                 status_code=500
@@ -173,31 +173,47 @@ async def callback(code: str, state: str, request: Request):
             status_code=500
         )
 
-    access_token = token_resp.json().get("access_token")
+    token_json = token_resp.json()
+    access_token = token_json.get("access_token")
+
     if not access_token:
+        print(f"Token response missing access_token: {token_json}")
         return JSONResponse(
             {"error": "アクセストークンが見つかりません"},
             status_code=400
         )
 
-    user_resp = requests.get(
-        f"{DISCORD_API_URL}/users/@me",
-        headers={"Authorization": f"Bearer {access_token}"}
-    )
-    user_resp.raise_for_status()
-    user_data = user_resp.json()
+    # ユーザー情報取得
+    try:
+        user_resp = requests.get(
+            f"{DISCORD_API_URL}/users/@me",
+            headers={"Authorization": f"Bearer {access_token}"},
+            timeout=10
+        )
+        user_resp.raise_for_status()
+        user_data = user_resp.json()
+    except Exception as e:
+        print(f"Failed to fetch user data: {str(e)}")
+        return JSONResponse(
+            {"error": "ユーザー情報の取得に失敗しました"},
+            status_code=500
+        )
 
+    # JWTトークン生成
     expiration = datetime.utcnow() + timedelta(hours=24)
     token_payload = {
         "discord_id": user_data["id"],
         "exp": expiration
     }
-    token = jwt.encode(token_payload, SECRET_KEY, algorithm=ALGORITHM)
+    session_token = jwt.encode(token_payload, SECRET_KEY, algorithm=ALGORITHM)
 
+    print(f"✅ Login success: Discord ID {user_data['id']}")
+
+    # リダイレクト + Cookie設定
     response = RedirectResponse(url="/dashboard", status_code=302)
     response.set_cookie(
         key="session_token",
-        value=token,
+        value=session_token,
         httponly=True,
         secure=True,
         samesite="lax",
@@ -205,6 +221,7 @@ async def callback(code: str, state: str, request: Request):
         max_age=86400
     )
     response.delete_cookie("oauth_state")
+
     return response
 
 
@@ -212,7 +229,7 @@ async def callback(code: str, state: str, request: Request):
 async def logout():
     """ログアウト（Cookie削除）"""
     response = RedirectResponse(url="/", status_code=302)
-    response.delete_cookie("session_token")
+    response.delete_cookie("session_token", path="/")
     return response
 
 

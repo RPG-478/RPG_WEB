@@ -10,7 +10,7 @@ if not SECRET_KEY:
 def get_current_user(request: Request):
     """認証済みユーザーのDiscord IDを取得"""
     token = request.cookies.get("session_token")
-    
+
     if not token:
         raise HTTPException(status_code=401, detail="ログインが必要です")
 
@@ -22,12 +22,12 @@ def get_current_user(request: Request):
             options={"verify_exp": True}
         )
         discord_id: str = payload.get("discord_id")
-        
+
         if not discord_id:
             raise HTTPException(status_code=401, detail="無効なトークンです")
-        
+
         return discord_id
-        
+
     except jwt.ExpiredSignatureError:
         raise HTTPException(status_code=401, detail="セッションの有効期限が切れました。再度ログインしてください")
     except JWTError:

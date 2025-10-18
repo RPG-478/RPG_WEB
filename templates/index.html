@@ -1,197 +1,55 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RPG BOT - ホーム</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        .hero-section {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 80px 0;
-            text-align: center;
-        }
-        .feature-card {
-            transition: transform 0.3s;
-            height: 100%;
-        }
-        .feature-card:hover {
-            transform: translateY(-5px);
-        }
-        .code-block {
-            background-color: #2d2d2d;
-            color: #f8f8f2;
-            padding: 15px;
-            border-radius: 5px;
-            font-family: 'Courier New', monospace;
-        }
-    </style>
-</head>
-<body>
-    <!-- ヒーローセクション -->
-    <div class="hero-section">
-        <div class="container">
-            <h1 class="display-3 fw-bold mb-4">🎮 Discord RPG BOT</h1>
-            <p class="lead mb-5">Discordで遊べるテキストベースRPG BOT+ Webシステム</p>
-            
-            <div class="d-flex gap-3 justify-content-center flex-wrap">
-                <a href="https://discord.com/api/oauth2/authorize?client_id=1423518851462856755&permissions=8&scope=bot" target="_blank" class="btn btn-light btn-lg">
-                    🔗【RPG BOTを招待する】
-                </a>
-                <a href="https://discord.gg/GXKFyzDe" target="_blank" class="btn btn-success btn-lg">
-                    💬 公式サポートサーバー
-                </a>
-                <a href="/auth/login" class="btn btn-outline-light btn-lg">
-                    🌐 公式Webにログイン
-                </a>
-            </div>
-        </div>
-    </div>
-
-    <!-- 機能紹介 -->
-    <div class="container my-5">
-        <h2 class="text-center mb-5">✨ 主な機能のご紹介</h2>
-        
-        <div class="row g-4">
-            <!-- BOT機能 -->
-            <div class="col-md-6">
-                <div class="card feature-card shadow">
-                    <div class="card-body">
-                        <h3 class="card-title">🤖 Discord BOT</h3>
-                        <ul class="list-unstyled mt-3">
-                            <li class="mb-2">⚔️ ダンジョン探索RPG</li>
-                            <li class="mb-2">👾 ターン制バトルシステム</li>
-                            <li class="mb-2">🎒 アイテム・装備システム</li>
-                            <li class="mb-2">📖 ストーリーイベント</li>
-                            <li class="mb-2">🔄 ループシステム</li>
-                        </ul>
-                        
-                        <h5 class="mt-4">📝 基本コマンド</h5>
-                        <div class="code-block">
-                            <div class="mb-2">!start - ゲーム開始</div>
-                            <div class="mb-2">!move - 前進</div>
-                            <div class="mb-2">!status - ステータス確認</div>
-                            <div class="mb-2">!inventory - 所持品確認</div>
-                            <div class="mb-2">!reset - データリセット</div>
-                            <div>詳しくはサポートサーバーをご確認ください</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Web機能 -->
-            <div class="col-md-6">
-                <div class="card feature-card shadow">
-                    <div class="card-body">
-                        <h3 class="card-title">🌐 公式Web機能</h3>
-                        <ul class="list-unstyled mt-3">
-                            <li class="mb-2">📊 プレイヤーダッシュボード(ステータス確認用)</li>
-                            <li class="mb-2">📜 プレイヤーとのトレードシステム</li>
-                            <li class="mb-2">📦 倉庫システム</li>
-                            <li class="mb-2">🔐 Discord OAuth2認証</li>
-                            <li class="mb-2">🔄 24時間でトレード保留</li>
-                        </ul>
-                        
-                        <h5 class="mt-4">公式Webサイトの使い方</h5>
-                        <div class="bg-light p-3 rounded">
-                            <div class="mb-2">1. Web上部・下部にある[Webにログイン]をクリック</div>
-                            <div class="mb-2">2. Discordアカウントで認証</div>
-                            <div>3. ダッシュボードにアクセス</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- 遊び方ガイド -->
-    <div class="bg-light py-5">
-        <div class="container">
-            <h2 class="text-center mb-5">📚 遊び方ガイド</h2>
-            
-            <div class="row g-4">
-                <div class="col-md-4">
-                    <div class="card shadow-sm h-100">
-                        <div class="card-body text-center">
-                            <div class="display-4 mb-3">1️⃣</div>
-                            <h5 class="card-title">BOTを招待</h5>
-                            <p class="card-text">Web上部・下部にある【RPG BOTを招待する】ボタンからあなたのDiscordサーバーにBOTを追加してみてください！(その際、RPGという名前のカテゴリー作成をお願いします)</p>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="col-md-4">
-                    <div class="card shadow-sm h-100">
-                        <div class="card-body text-center">
-                            <div class="display-4 mb-3">2️⃣</div>
-                            <h5 class="card-title">ゲームの開始方法について</h5>
-                            <p class="card-text">Discordで <code>!start</code> とコマンドを実行するだけ！自分専用のチャンネルで冒険を開始することが出来ます(管理者以外に見ることは出来ません)</p>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="col-md-4">
-                    <div class="card shadow-sm h-100">
-                        <div class="card-body text-center">
-                            <div class="display-4 mb-3">3️⃣</div>
-                            <h5 class="card-title">Web管理システム付き</h5>
-                            <p class="card-text">Webにログインして他のメンバーとのトレードや倉庫を管理可能！</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- サポートセクション -->
-    <div class="container my-5">
-        <div class="card shadow-lg border-0">
-            <div class="card-body text-center py-5">
-                <h2 class="mb-4">💬 サポートが必要ですか?</h2>
-                <p class="lead mb-4">質問・バグ報告・提案は公式サポートサーバーへ!</p>
-                <a href="https://discord.gg/GXKFyzDe" target="_blank" class="btn btn-success btn-lg">
-                    💬 公式サポートサーバーに参加
-                </a>
-            </div>
-        </div>
-    </div>
-
-    <!-- 招待セクション -->
-    <div class="bg-primary text-white py-5">
-        <div class="container text-center">
-            <h2 class="mb-4">今すぐ始めよう! 🎉</h2>
-            <p class="lead mb-4">無料で遊べるDiscord RPG BOT</p>
-            <div class="d-flex gap-3 justify-content-center flex-wrap">
-                <a href="https://discord.com/api/oauth2/authorize?client_id=1423518851462856755&permissions=8&scope=bot" target="_blank" class="btn btn-light btn-lg">
-                    🔗【RPG BOTを招待する】
-                </a>
-                <a href="https://discord.gg/GXKFyzDe" target="_blank" class="btn btn-success btn-lg">
-                    💬 公式サポートサーバー
-                </a>
-                <a href="/auth/login" class="btn btn-outline-light btn-lg">
-                    🌐 公式Webにログイン
-                </a>
-            </div>
-        </div>
-    </div>
-
-    <!-- フッター -->
-    <footer class="bg-dark text-white text-center py-4 mt-5">
-        <div class="container">
-            <p class="mb-2">Discord RPG BOT © 2025</p>
-            <div class="d-flex gap-3 justify-content-center flex-wrap">
-                <a href="/terms" class="text-white text-decoration-none">利用規約(Web)</a>
-                <span class="text-white">|</span>
-                <a href="/bot-terms" class="text-white text-decoration-none">利用規約(BOT)</a>
-                <span class="text-white">|</span>
-                <a href="/privacy" class="text-white text-decoration-none">プライバシーポリシー</a>
-                <span class="text-white">|</span>
-                <a href="https://discord.gg/GXKFyzDe" target="_blank" class="text-white text-decoration-none">サポートサーバー</a>
-            </div>
-        </div>
-    </footer>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+🎮 Discord RPG BOT
+Discordで遊べるテキストベースRPG BOT+ Webシステム
+🔗【RPG BOTを招待する】
+💬 公式サポートサーバー
+🌐 公式Webにログイン
+✨ 主な機能のご紹介
+🤖 Discord BOT
+		⚔️ ダンジョン探索RPG
+		👾 ターン制バトルシステム
+		🎒 アイテム・装備システム
+		📖 ストーリーイベント
+		🔄 ループシステム
+📝 基本コマンド
+!start - ゲーム開始
+!move - 前進
+!status - ステータス確認
+!inventory - 所持品確認
+!reset - データリセット
+詳しくはサポートサーバーをご確認ください
+🌐 公式Web機能
+		📊 プレイヤーダッシュボード(ステータス確認用)
+		📜 プレイヤーとのトレードシステム
+		📦 倉庫システム
+		🔐 Discord OAuth2認証
+		🔄 24時間でトレード保留
+公式Webサイトの使い方
+1. Web上部・下部にある[Webにログイン]をクリック
+2. Discordアカウントで認証
+3. ダッシュボードにアクセス
+📚 遊び方ガイド
+1️⃣
+BOTを招待
+Web上部・下部にある【RPG BOTを招待する】ボタンからあなたのDiscordサーバーにBOTを追加してみてください！(その際、RPGという名前のカテゴリー作成をお願いします)
+2️⃣
+ゲームの開始方法について
+Discordで !start とコマンドを実行するだけ！自分専用のチャンネルで冒険を開始することが出来ます(管理者以外に見ることは出来ません)
+3️⃣
+Web管理システム付き
+Webにログインして他のメンバーとのトレードや倉庫を管理可能！
+💬 サポートが必要ですか?
+質問・バグ報告・提案は公式サポートサーバーへ!
+💬 公式サポートサーバーに参加
+今すぐ始めよう! 🎉
+無料で遊べるDiscord RPG BOT
+🔗【RPG BOTを招待する】
+💬 公式サポートサーバー
+🌐 公式Webにログイン
+Discord RPG BOT © 2025
+利用規約(Web)
+|
+利用規約(BOT)
+|
+プライバシーポリシー
+|
+サポートサーバー

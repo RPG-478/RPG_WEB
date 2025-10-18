@@ -21,7 +21,7 @@ async def trade_request(
                 {"error": "送信者が見つかりません"},
                 status_code=404
             )
-        
+
         # アイテム所持確認
         inventory = sender_player.get("inventory", [])
         for item in item_names:
@@ -30,19 +30,19 @@ async def trade_request(
                     {"error": f"アイテム '{item}' を所持していません"},
                     status_code=400
                 )
-        
+
         receiver_player = supabase_client.get_player(receiver_id)
         if not receiver_player:
             return JSONResponse(
                 {"error": "受信者が見つかりません"},
                 status_code=404
             )
-        
+
         # トレード提案作成
         trade = supabase_client.create_trade_proposal(
             sender_id, receiver_id, item_names
         )
-        
+
         if trade:
             return RedirectResponse(url="/trade", status_code=303)
         else:
@@ -75,7 +75,7 @@ async def receiver_respond(
                     {"error": "トレードの拒否に失敗しました"},
                     status_code=400
                 )
-        
+
         elif action == "accept":
             # 承認 + アイテム提示
             receiver_player = supabase_client.get_player(user_id)
@@ -84,7 +84,7 @@ async def receiver_respond(
                     {"error": "プレイヤーが見つかりません"},
                     status_code=404
                 )
-            
+
             # アイテム所持確認
             inventory = receiver_player.get("inventory", [])
             for item in item_names:
@@ -93,7 +93,7 @@ async def receiver_respond(
                         {"error": f"アイテム '{item}' を所持していません"},
                         status_code=400
                     )
-            
+
             # 受信者のアイテムを設定
             success = supabase_client.set_receiver_items(trade_id, item_names)
             if success:
@@ -126,7 +126,7 @@ async def sender_approve(
                     {"error": "トレードのキャンセルに失敗しました"},
                     status_code=400
                 )
-        
+
         elif action == "approve":
             # トレード完了処理
             success = supabase_client.complete_trade(trade_id)
@@ -164,15 +164,15 @@ async def trade_page(request: Request, discord_id: str = Depends(get_current_use
     player = supabase_client.get_player(discord_id)
     if not player:
         return RedirectResponse(url="/dashboard")
-    
+
     # 自分に関連するトレードを取得
     my_trades = supabase_client.get_my_trades(discord_id)
     trade_history = supabase_client.get_trade_history(discord_id)
-    
+
     # 利用可能なインベントリ
     available_inventory = supabase_client.get_available_inventory(discord_id)
     held_items = supabase_client.get_held_items(discord_id)
-    
+
     return templates.TemplateResponse("trade.html", {
         "request": request,
         "discord_id": discord_id,

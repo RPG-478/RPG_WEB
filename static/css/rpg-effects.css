@@ -1,0 +1,451 @@
+/* ================================================
+   RPG EFFECTS & VISUAL ENHANCEMENTS
+   ================================================
+   魔法陣、パーティクル、光るエフェクト
+   - 魔法陣背景
+   - 光るボーダー
+   - パーティクルエフェクト
+   - グローエフェクト
+================================================ */
+
+/* ================================================
+   魔法陣背景エフェクト
+================================================ */
+.magic-circle-bg {
+    position: relative;
+    overflow: hidden;
+}
+
+.magic-circle-bg::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 400px;
+    height: 400px;
+    background-image: 
+        radial-gradient(circle, transparent 40%, rgba(157, 78, 221, 0.03) 41%, rgba(157, 78, 221, 0.03) 42%, transparent 43%),
+        radial-gradient(circle, transparent 55%, rgba(157, 78, 221, 0.05) 56%, rgba(157, 78, 221, 0.05) 57%, transparent 58%),
+        radial-gradient(circle, transparent 70%, rgba(157, 78, 221, 0.03) 71%, rgba(157, 78, 221, 0.03) 72%, transparent 73%);
+    transform: translate(-50%, -50%) rotate(0deg);
+    opacity: 0.4;
+    pointer-events: none;
+    z-index: 0;
+    animation: rotate-magic-circle 60s linear infinite;
+}
+
+.magic-circle-bg::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 300px;
+    height: 300px;
+    background-image: 
+        linear-gradient(45deg, transparent 48%, rgba(157, 78, 221, 0.05) 49%, rgba(157, 78, 221, 0.05) 51%, transparent 52%),
+        linear-gradient(-45deg, transparent 48%, rgba(157, 78, 221, 0.05) 49%, rgba(157, 78, 221, 0.05) 51%, transparent 52%);
+    transform: translate(-50%, -50%) rotate(0deg);
+    opacity: 0.3;
+    pointer-events: none;
+    z-index: 0;
+    animation: rotate-magic-circle 45s linear infinite reverse;
+}
+
+.magic-circle-bg > * {
+    position: relative;
+    z-index: 1;
+}
+
+/* ================================================
+   光るボーダーエフェクト
+================================================ */
+.glow-border {
+    position: relative;
+    border: 2px solid transparent;
+    background: 
+        linear-gradient(var(--dungeon-surface), var(--dungeon-surface)) padding-box,
+        linear-gradient(135deg, 
+            rgba(157, 78, 221, 0.5) 0%, 
+            rgba(102, 126, 234, 0.5) 50%, 
+            rgba(157, 78, 221, 0.5) 100%) border-box;
+    animation: glow-border-animation 3s ease-in-out infinite;
+}
+
+.glow-border-gold {
+    background: 
+        linear-gradient(var(--dungeon-surface), var(--dungeon-surface)) padding-box,
+        linear-gradient(135deg, 
+            rgba(255, 215, 0, 0.5) 0%, 
+            rgba(255, 237, 78, 0.7) 50%, 
+            rgba(255, 215, 0, 0.5) 100%) border-box;
+}
+
+.glow-border-success {
+    background: 
+        linear-gradient(var(--dungeon-surface), var(--dungeon-surface)) padding-box,
+        linear-gradient(135deg, 
+            rgba(6, 255, 165, 0.5) 0%, 
+            rgba(0, 204, 136, 0.5) 50%, 
+            rgba(6, 255, 165, 0.5) 100%) border-box;
+}
+
+.glow-border-danger {
+    background: 
+        linear-gradient(var(--dungeon-surface), var(--dungeon-surface)) padding-box,
+        linear-gradient(135deg, 
+            rgba(239, 35, 60, 0.5) 0%, 
+            rgba(217, 4, 41, 0.5) 50%, 
+            rgba(239, 35, 60, 0.5) 100%) border-box;
+}
+
+/* ================================================
+   パーティクルエフェクト
+================================================ */
+.particle-container {
+    position: relative;
+    overflow: hidden;
+}
+
+.particle {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background: var(--accent-magic);
+    border-radius: 50%;
+    opacity: 0;
+    pointer-events: none;
+    box-shadow: 0 0 10px var(--accent-magic);
+}
+
+.particle-gold {
+    background: var(--accent-gold);
+    box-shadow: 0 0 10px var(--accent-gold);
+}
+
+.particle-success {
+    background: var(--accent-success);
+    box-shadow: 0 0 10px var(--accent-success);
+}
+
+/* パーティクル用のアニメーション（複数バリエーション） */
+.particle:nth-child(1) {
+    animation: particle-float-1 4s ease-in-out infinite;
+    animation-delay: 0s;
+}
+
+.particle:nth-child(2) {
+    animation: particle-float-2 5s ease-in-out infinite;
+    animation-delay: 0.5s;
+}
+
+.particle:nth-child(3) {
+    animation: particle-float-3 6s ease-in-out infinite;
+    animation-delay: 1s;
+}
+
+.particle:nth-child(4) {
+    animation: particle-float-1 5.5s ease-in-out infinite;
+    animation-delay: 1.5s;
+}
+
+.particle:nth-child(5) {
+    animation: particle-float-2 4.5s ease-in-out infinite;
+    animation-delay: 2s;
+}
+
+/* ================================================
+   グローエフェクト（テキスト・アイコン）
+================================================ */
+.text-glow {
+    text-shadow: 
+        0 0 10px currentColor,
+        0 0 20px currentColor,
+        0 0 30px currentColor;
+}
+
+.text-glow-gold {
+    color: var(--accent-gold);
+    text-shadow: 
+        0 0 10px rgba(255, 215, 0, 0.8),
+        0 0 20px rgba(255, 215, 0, 0.6),
+        0 0 30px rgba(255, 215, 0, 0.4);
+}
+
+.text-glow-magic {
+    color: var(--accent-magic);
+    text-shadow: 
+        0 0 10px rgba(157, 78, 221, 0.8),
+        0 0 20px rgba(157, 78, 221, 0.6),
+        0 0 30px rgba(157, 78, 221, 0.4);
+}
+
+.text-glow-danger {
+    color: var(--accent-danger);
+    text-shadow: 
+        0 0 10px rgba(239, 35, 60, 0.8),
+        0 0 20px rgba(239, 35, 60, 0.6),
+        0 0 30px rgba(239, 35, 60, 0.4);
+}
+
+.text-glow-success {
+    color: var(--accent-success);
+    text-shadow: 
+        0 0 10px rgba(6, 255, 165, 0.8),
+        0 0 20px rgba(6, 255, 165, 0.6),
+        0 0 30px rgba(6, 255, 165, 0.4);
+}
+
+/* ================================================
+   ボックスグロー
+================================================ */
+.box-glow {
+    box-shadow: 
+        0 0 20px rgba(157, 78, 221, 0.3),
+        0 0 40px rgba(157, 78, 221, 0.2),
+        inset 0 0 20px rgba(157, 78, 221, 0.1);
+    animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.box-glow-gold {
+    box-shadow: 
+        0 0 20px rgba(255, 215, 0, 0.3),
+        0 0 40px rgba(255, 215, 0, 0.2),
+        inset 0 0 20px rgba(255, 215, 0, 0.1);
+}
+
+.box-glow-danger {
+    box-shadow: 
+        0 0 20px rgba(239, 35, 60, 0.3),
+        0 0 40px rgba(239, 35, 60, 0.2),
+        inset 0 0 20px rgba(239, 35, 60, 0.1);
+}
+
+.box-glow-success {
+    box-shadow: 
+        0 0 20px rgba(6, 255, 165, 0.3),
+        0 0 40px rgba(6, 255, 165, 0.2),
+        inset 0 0 20px rgba(6, 255, 165, 0.1);
+}
+
+/* ================================================
+   エナジーフィールド（背景アニメーション）
+================================================ */
+.energy-field {
+    position: relative;
+    background: 
+        linear-gradient(45deg, transparent 30%, rgba(157, 78, 221, 0.05) 50%, transparent 70%),
+        var(--dungeon-surface);
+    background-size: 200% 200%;
+    animation: energy-shift 10s ease infinite;
+}
+
+.energy-field-gold {
+    background: 
+        linear-gradient(45deg, transparent 30%, rgba(255, 215, 0, 0.05) 50%, transparent 70%),
+        var(--dungeon-surface);
+    background-size: 200% 200%;
+}
+
+/* ================================================
+   シマーエフェクト（光の走査）
+================================================ */
+.shimmer {
+    position: relative;
+    overflow: hidden;
+}
+
+.shimmer::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.1) 50%,
+        transparent 100%
+    );
+    animation: shimmer-slide 3s ease-in-out infinite;
+}
+
+/* ================================================
+   ホバーエフェクト拡張
+================================================ */
+.hover-lift {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.hover-lift:hover {
+    transform: translateY(-5px);
+    box-shadow: 
+        0 10px 30px rgba(0, 0, 0, 0.5),
+        0 0 20px rgba(157, 78, 221, 0.3);
+}
+
+.hover-glow:hover {
+    box-shadow: 
+        0 0 30px rgba(157, 78, 221, 0.5),
+        0 0 60px rgba(157, 78, 221, 0.3),
+        inset 0 0 30px rgba(157, 78, 221, 0.2);
+}
+
+/* ================================================
+   インナーシャドウ（凹み効果）
+================================================ */
+.inset-shadow {
+    box-shadow: 
+        inset 0 2px 4px rgba(0, 0, 0, 0.3),
+        inset 0 -1px 2px rgba(255, 255, 255, 0.05);
+}
+
+/* ================================================
+   スキャンラインエフェクト（レトロRPG風）
+================================================ */
+.scanline {
+    position: relative;
+}
+
+.scanline::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: repeating-linear-gradient(
+        0deg,
+        rgba(0, 0, 0, 0.1) 0px,
+        transparent 1px,
+        transparent 2px,
+        rgba(0, 0, 0, 0.1) 3px
+    );
+    pointer-events: none;
+    opacity: 0.3;
+    z-index: 10;
+}
+
+/* ================================================
+   ネオンボーダーエフェクト
+================================================ */
+.neon-border {
+    border: 2px solid var(--accent-magic);
+    box-shadow: 
+        0 0 5px var(--accent-magic),
+        inset 0 0 5px var(--accent-magic);
+    animation: neon-pulse 1.5s ease-in-out infinite alternate;
+}
+
+.neon-border-gold {
+    border-color: var(--accent-gold);
+    box-shadow: 
+        0 0 5px var(--accent-gold),
+        inset 0 0 5px var(--accent-gold);
+}
+
+/* ================================================
+   オーラエフェクト（大型カード用）
+================================================ */
+.aura-effect {
+    position: relative;
+}
+
+.aura-effect::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(
+        45deg,
+        var(--accent-magic),
+        var(--accent-gold),
+        var(--accent-success),
+        var(--accent-magic)
+    );
+    background-size: 400% 400%;
+    border-radius: inherit;
+    opacity: 0;
+    z-index: -1;
+    transition: opacity 0.3s ease;
+    animation: aura-rotate 8s linear infinite;
+}
+
+.aura-effect:hover::before {
+    opacity: 0.5;
+}
+
+/* ================================================
+   光の粒子エフェクト（カードホバー時）
+================================================ */
+.light-particles {
+    position: relative;
+    overflow: hidden;
+}
+
+.light-particles::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: 
+        radial-gradient(circle, rgba(255, 255, 255, 0.3) 1px, transparent 1px),
+        radial-gradient(circle, rgba(157, 78, 221, 0.3) 1px, transparent 1px);
+    background-size: 50px 50px, 80px 80px;
+    background-position: 0 0, 40px 60px;
+    opacity: 0;
+    animation: particle-drift 20s linear infinite;
+    pointer-events: none;
+}
+
+.light-particles:hover::after {
+    opacity: 0.4;
+}
+
+/* ================================================
+   レスポンシブ調整
+================================================ */
+@media (max-width: 768px) {
+    .magic-circle-bg::before {
+        width: 250px;
+        height: 250px;
+    }
+    
+    .magic-circle-bg::after {
+        width: 180px;
+        height: 180px;
+    }
+}
+
+@media (max-width: 480px) {
+    .magic-circle-bg::before,
+    .magic-circle-bg::after {
+        opacity: 0.2;
+    }
+    
+    .scanline::before {
+        opacity: 0.1;
+    }
+}
+
+/* ================================================
+   パフォーマンス最適化（アニメーション軽減設定対応）
+================================================ */
+@media (prefers-reduced-motion: reduce) {
+    .magic-circle-bg::before,
+    .magic-circle-bg::after,
+    .glow-border,
+    .particle,
+    .box-glow,
+    .energy-field,
+    .shimmer::after,
+    .neon-border,
+    .aura-effect::before,
+    .light-particles::after {
+        animation: none;
+    }
+}

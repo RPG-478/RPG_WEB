@@ -1,0 +1,714 @@
+/* ================================================
+   RPG ANIMATIONS
+   ================================================
+   全アニメーション集
+   - フェードイン・スライドイン
+   - 回転・パルス
+   - パーティクルアニメーション
+   - ローディング
+================================================ */
+
+/* ================================================
+   フェードイン・スライドイン
+================================================ */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes fadeInRight {
+    from {
+        opacity: 0;
+        transform: translateX(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes slideInUp {
+    from {
+        transform: translateY(100%);
+    }
+    to {
+        transform: translateY(0);
+    }
+}
+
+/* ================================================
+   回転アニメーション
+================================================ */
+@keyframes rotate {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes rotate-reverse {
+    from {
+        transform: rotate(360deg);
+    }
+    to {
+        transform: rotate(0deg);
+    }
+}
+
+@keyframes rotate-magic-circle {
+    from {
+        transform: translate(-50%, -50%) rotate(0deg);
+    }
+    to {
+        transform: translate(-50%, -50%) rotate(360deg);
+    }
+}
+
+@keyframes spin-slow {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* ================================================
+   パルス・スケールアニメーション
+================================================ */
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+}
+
+@keyframes pulse-glow {
+    0%, 100% {
+        box-shadow: 
+            0 0 20px rgba(157, 78, 221, 0.3),
+            0 0 40px rgba(157, 78, 221, 0.2),
+            inset 0 0 20px rgba(157, 78, 221, 0.1);
+    }
+    50% {
+        box-shadow: 
+            0 0 30px rgba(157, 78, 221, 0.5),
+            0 0 60px rgba(157, 78, 221, 0.3),
+            inset 0 0 30px rgba(157, 78, 221, 0.2);
+    }
+}
+
+@keyframes heartbeat {
+    0%, 100% {
+        transform: scale(1);
+    }
+    10%, 30% {
+        transform: scale(1.1);
+    }
+    20%, 40% {
+        transform: scale(1);
+    }
+}
+
+/* ================================================
+   グローアニメーション
+================================================ */
+@keyframes glow-border-animation {
+    0%, 100% {
+        filter: brightness(1);
+    }
+    50% {
+        filter: brightness(1.3);
+    }
+}
+
+@keyframes neon-pulse {
+    0%, 100% {
+        box-shadow: 
+            0 0 5px currentColor,
+            inset 0 0 5px currentColor;
+    }
+    50% {
+        box-shadow: 
+            0 0 20px currentColor,
+            inset 0 0 20px currentColor;
+    }
+}
+
+@keyframes text-glow-pulse {
+    0%, 100% {
+        text-shadow: 
+            0 0 10px currentColor,
+            0 0 20px currentColor;
+    }
+    50% {
+        text-shadow: 
+            0 0 20px currentColor,
+            0 0 40px currentColor,
+            0 0 60px currentColor;
+    }
+}
+
+/* ================================================
+   シェイク・バウンス
+================================================ */
+@keyframes shake {
+    0%, 100% {
+        transform: translateX(0);
+    }
+    10%, 30%, 50%, 70%, 90% {
+        transform: translateX(-5px);
+    }
+    20%, 40%, 60%, 80% {
+        transform: translateX(5px);
+    }
+}
+
+@keyframes bounce {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+@keyframes bounce-in {
+    0% {
+        opacity: 0;
+        transform: scale(0.3);
+    }
+    50% {
+        opacity: 1;
+        transform: scale(1.05);
+    }
+    70% {
+        transform: scale(0.9);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* ================================================
+   パーティクルアニメーション
+================================================ */
+@keyframes particle-float-1 {
+    0% {
+        opacity: 0;
+        transform: translate(0, 0);
+    }
+    10% {
+        opacity: 1;
+    }
+    90% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+        transform: translate(20px, -100px);
+    }
+}
+
+@keyframes particle-float-2 {
+    0% {
+        opacity: 0;
+        transform: translate(0, 0);
+    }
+    10% {
+        opacity: 1;
+    }
+    90% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+        transform: translate(-30px, -120px);
+    }
+}
+
+@keyframes particle-float-3 {
+    0% {
+        opacity: 0;
+        transform: translate(0, 0);
+    }
+    10% {
+        opacity: 1;
+    }
+    90% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+        transform: translate(15px, -110px);
+    }
+}
+
+@keyframes particle-drift {
+    0% {
+        background-position: 0 0, 40px 60px;
+    }
+    100% {
+        background-position: 100px 100px, 140px 160px;
+    }
+}
+
+/* ================================================
+   エネルギー・シマーエフェクト
+================================================ */
+@keyframes energy-shift {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+@keyframes shimmer-slide {
+    0% {
+        left: -100%;
+    }
+    100% {
+        left: 200%;
+    }
+}
+
+/* ================================================
+   オーラ・グラデーション回転
+================================================ */
+@keyframes aura-rotate {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+@keyframes gradient-shift {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+/* ================================================
+   レアリティ専用アニメーション
+================================================ */
+@keyframes legendary-pulse {
+    0%, 100% {
+        background: linear-gradient(135deg, rgba(255, 215, 0, 0.1) 0%, rgba(255, 215, 0, 0.05) 100%);
+        box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+    }
+    50% {
+        background: linear-gradient(135deg, rgba(255, 215, 0, 0.15) 0%, rgba(255, 215, 0, 0.08) 100%);
+        box-shadow: 0 0 25px rgba(255, 215, 0, 0.5);
+    }
+}
+
+@keyframes mythic-pulse {
+    0%, 100% {
+        background: linear-gradient(135deg, rgba(255, 0, 110, 0.1) 0%, rgba(255, 0, 110, 0.05) 100%);
+        box-shadow: 0 0 15px rgba(255, 0, 110, 0.3);
+    }
+    50% {
+        background: linear-gradient(135deg, rgba(255, 0, 110, 0.15) 0%, rgba(255, 0, 110, 0.08) 100%);
+        box-shadow: 0 0 30px rgba(255, 0, 110, 0.6);
+    }
+}
+
+/* ================================================
+   HP警告アニメーション
+================================================ */
+@keyframes hp-warning {
+    0%, 100% {
+        box-shadow: 0 0 10px rgba(239, 35, 60, 0.5);
+    }
+    50% {
+        box-shadow: 0 0 25px rgba(239, 35, 60, 0.9);
+    }
+}
+
+/* ================================================
+   ローディングアニメーション
+================================================ */
+@keyframes spin-loader {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.loader {
+    width: 50px;
+    height: 50px;
+    border: 4px solid rgba(157, 78, 221, 0.2);
+    border-top: 4px solid var(--accent-magic);
+    border-radius: 50%;
+    animation: spin-loader 1s linear infinite;
+}
+
+.loader-gold {
+    border-color: rgba(255, 215, 0, 0.2);
+    border-top-color: var(--accent-gold);
+}
+
+@keyframes dots-pulse {
+    0%, 80%, 100% {
+        opacity: 0;
+    }
+    40% {
+        opacity: 1;
+    }
+}
+
+.loading-dots span {
+    animation: dots-pulse 1.4s infinite;
+}
+
+.loading-dots span:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.loading-dots span:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
+/* ================================================
+   スクロールアニメーション用クラス
+================================================ */
+.animate-fade-in {
+    animation: fadeIn 0.6s ease-out;
+}
+
+.animate-fade-in-up {
+    animation: fadeInUp 0.8s ease-out;
+}
+
+.animate-fade-in-down {
+    animation: fadeInDown 0.8s ease-out;
+}
+
+.animate-fade-in-left {
+    animation: fadeInLeft 0.8s ease-out;
+}
+
+.animate-fade-in-right {
+    animation: fadeInRight 0.8s ease-out;
+}
+
+.animate-slide-in-up {
+    animation: slideInUp 0.6s ease-out;
+}
+
+.animate-pulse {
+    animation: pulse 2s ease-in-out infinite;
+}
+
+.animate-bounce {
+    animation: bounce 1s ease-in-out infinite;
+}
+
+.animate-shake {
+    animation: shake 0.5s ease-in-out;
+}
+
+.animate-heartbeat {
+    animation: heartbeat 1.5s ease-in-out infinite;
+}
+
+.animate-rotate {
+    animation: rotate 2s linear infinite;
+}
+
+.animate-glow-pulse {
+    animation: text-glow-pulse 2s ease-in-out infinite;
+}
+
+/* ================================================
+   遅延クラス（スタッガードアニメーション用）
+================================================ */
+.delay-100 {
+    animation-delay: 0.1s;
+}
+
+.delay-200 {
+    animation-delay: 0.2s;
+}
+
+.delay-300 {
+    animation-delay: 0.3s;
+}
+
+.delay-400 {
+    animation-delay: 0.4s;
+}
+
+.delay-500 {
+    animation-delay: 0.5s;
+}
+
+.delay-600 {
+    animation-delay: 0.6s;
+}
+
+.delay-700 {
+    animation-delay: 0.7s;
+}
+
+.delay-800 {
+    animation-delay: 0.8s;
+}
+
+.delay-900 {
+    animation-delay: 0.9s;
+}
+
+.delay-1000 {
+    animation-delay: 1s;
+}
+
+/* ================================================
+   スピードクラス
+================================================ */
+.speed-slow {
+    animation-duration: 3s;
+}
+
+.speed-normal {
+    animation-duration: 1s;
+}
+
+.speed-fast {
+    animation-duration: 0.5s;
+}
+
+/* ================================================
+   ホバーアニメーション
+================================================ */
+.hover-float:hover {
+    animation: bounce 1s ease-in-out infinite;
+}
+
+.hover-rotate:hover {
+    animation: rotate 2s linear infinite;
+}
+
+.hover-pulse:hover {
+    animation: pulse 1s ease-in-out infinite;
+}
+
+.hover-glow:hover {
+    animation: pulse-glow 1.5s ease-in-out infinite;
+}
+
+/* ================================================
+   ボタン専用アニメーション
+================================================ */
+@keyframes button-press {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(0.95);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+.btn:active {
+    animation: button-press 0.2s ease-out;
+}
+
+/* ================================================
+   ページトランジション
+================================================ */
+@keyframes page-enter {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.page-transition {
+    animation: page-enter 0.5s ease-out;
+}
+
+/* ================================================
+   カード出現アニメーション
+================================================ */
+@keyframes card-appear {
+    from {
+        opacity: 0;
+        transform: translateY(30px) scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.card-enter {
+    animation: card-appear 0.5s ease-out;
+}
+
+/* ================================================
+   通知・アラートアニメーション
+================================================ */
+@keyframes notification-slide-in {
+    from {
+        opacity: 0;
+        transform: translateX(100%);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.notification-enter {
+    animation: notification-slide-in 0.3s ease-out;
+}
+
+/* ================================================
+   モーダル・ダイアログアニメーション
+================================================ */
+@keyframes modal-fade-in {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes modal-scale-in {
+    from {
+        opacity: 0;
+        transform: scale(0.7);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.modal-backdrop {
+    animation: modal-fade-in 0.3s ease-out;
+}
+
+.modal-content {
+    animation: modal-scale-in 0.3s ease-out;
+}
+
+/* ================================================
+   数値カウントアップアニメーション
+================================================ */
+@keyframes count-up {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.stat-value-change {
+    animation: count-up 0.5s ease-out;
+}
+
+/* ================================================
+   レスポンシブ：モバイルではアニメーションを簡略化
+================================================ */
+@media (max-width: 768px) {
+    .animate-fade-in-up,
+    .animate-fade-in-down,
+    .animate-fade-in-left,
+    .animate-fade-in-right {
+        animation: fadeIn 0.4s ease-out;
+    }
+    
+    .card-enter {
+        animation: fadeIn 0.3s ease-out;
+    }
+}
+
+/* ================================================
+   アニメーション軽減設定対応
+================================================ */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+    
+    .loader {
+        animation: none;
+        border-top-color: var(--accent-magic);
+    }
+}

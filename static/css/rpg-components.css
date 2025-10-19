@@ -1,0 +1,610 @@
+/* ================================================
+   RPG COMPONENTS
+   ================================================
+   HP/MPバー、レアリティカラー、ステータス表示、アイテムカード
+   - ステータスバー（HP/MP/経験値）
+   - レアリティ別カラーシステム
+   - アイテムカード
+   - プレイヤーステータス表示
+================================================ */
+
+/* ================================================
+   ステータスバー（HP/MP/経験値）
+================================================ */
+.stat-bar-container {
+    margin-bottom: 1rem;
+}
+
+.stat-bar-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+    font-family: var(--font-title);
+    font-size: 0.9rem;
+    color: var(--text-primary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.stat-bar-wrapper {
+    position: relative;
+    height: 24px;
+    background: var(--dungeon-bg);
+    border: 2px solid var(--dungeon-border);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4);
+}
+
+.stat-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    border-radius: 10px;
+    transition: width 0.5s ease;
+    background-size: 30px 30px;
+    box-shadow: inset 0 -2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.stat-bar-value {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-family: var(--font-title);
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: white;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+    z-index: 2;
+    white-space: nowrap;
+}
+
+/* HP バー（赤） */
+.stat-bar-hp {
+    background: linear-gradient(90deg, #ef233c 0%, #d90429 100%);
+    background-image: 
+        linear-gradient(90deg, #ef233c 0%, #d90429 100%),
+        repeating-linear-gradient(
+            45deg,
+            transparent,
+            transparent 10px,
+            rgba(255, 255, 255, 0.05) 10px,
+            rgba(255, 255, 255, 0.05) 20px
+        );
+    box-shadow: 
+        0 0 10px rgba(239, 35, 60, 0.5),
+        inset 0 -2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* MP バー（青） */
+.stat-bar-mp {
+    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+    background-image: 
+        linear-gradient(90deg, #667eea 0%, #764ba2 100%),
+        repeating-linear-gradient(
+            45deg,
+            transparent,
+            transparent 10px,
+            rgba(255, 255, 255, 0.05) 10px,
+            rgba(255, 255, 255, 0.05) 20px
+        );
+    box-shadow: 
+        0 0 10px rgba(157, 78, 221, 0.5),
+        inset 0 -2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* 経験値バー（緑） */
+.stat-bar-exp {
+    background: linear-gradient(90deg, #06ffa5 0%, #00cc88 100%);
+    background-image: 
+        linear-gradient(90deg, #06ffa5 0%, #00cc88 100%),
+        repeating-linear-gradient(
+            45deg,
+            transparent,
+            transparent 10px,
+            rgba(255, 255, 255, 0.05) 10px,
+            rgba(255, 255, 255, 0.05) 20px
+        );
+    box-shadow: 
+        0 0 10px rgba(6, 255, 165, 0.5),
+        inset 0 -2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* スタミナバー（黄色） */
+.stat-bar-stamina {
+    background: linear-gradient(90deg, #ffd700 0%, #ffed4e 100%);
+    background-image: 
+        linear-gradient(90deg, #ffd700 0%, #ffed4e 100%),
+        repeating-linear-gradient(
+            45deg,
+            transparent,
+            transparent 10px,
+            rgba(0, 0, 0, 0.05) 10px,
+            rgba(0, 0, 0, 0.05) 20px
+        );
+    box-shadow: 
+        0 0 10px rgba(255, 215, 0, 0.5),
+        inset 0 -2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* HP低下時のアニメーション */
+.stat-bar-hp.low-hp {
+    animation: hp-warning 1s ease-in-out infinite;
+}
+
+/* ================================================
+   レアリティカラーシステム
+================================================ */
+.rarity-common {
+    color: #b0b0c8;
+    border-color: #b0b0c8;
+}
+
+.rarity-uncommon {
+    color: #06ffa5;
+    border-color: #06ffa5;
+}
+
+.rarity-rare {
+    color: #667eea;
+    border-color: #667eea;
+}
+
+.rarity-epic {
+    color: #9d4edd;
+    border-color: #9d4edd;
+}
+
+.rarity-legendary {
+    color: #ffd700;
+    border-color: #ffd700;
+}
+
+.rarity-mythic {
+    color: #ff006e;
+    border-color: #ff006e;
+}
+
+/* レアリティ背景 */
+.rarity-bg-common {
+    background: linear-gradient(135deg, rgba(176, 176, 200, 0.1) 0%, rgba(176, 176, 200, 0.05) 100%);
+}
+
+.rarity-bg-uncommon {
+    background: linear-gradient(135deg, rgba(6, 255, 165, 0.1) 0%, rgba(6, 255, 165, 0.05) 100%);
+}
+
+.rarity-bg-rare {
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(102, 126, 234, 0.05) 100%);
+}
+
+.rarity-bg-epic {
+    background: linear-gradient(135deg, rgba(157, 78, 221, 0.1) 0%, rgba(157, 78, 221, 0.05) 100%);
+}
+
+.rarity-bg-legendary {
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.1) 0%, rgba(255, 215, 0, 0.05) 100%);
+    animation: legendary-pulse 2s ease-in-out infinite;
+}
+
+.rarity-bg-mythic {
+    background: linear-gradient(135deg, rgba(255, 0, 110, 0.1) 0%, rgba(255, 0, 110, 0.05) 100%);
+    animation: mythic-pulse 1.5s ease-in-out infinite;
+}
+
+/* レアリティグロー */
+.rarity-glow-common {
+    box-shadow: 0 0 15px rgba(176, 176, 200, 0.3);
+}
+
+.rarity-glow-uncommon {
+    box-shadow: 0 0 15px rgba(6, 255, 165, 0.4);
+}
+
+.rarity-glow-rare {
+    box-shadow: 0 0 15px rgba(102, 126, 234, 0.5);
+}
+
+.rarity-glow-epic {
+    box-shadow: 0 0 20px rgba(157, 78, 221, 0.6);
+}
+
+.rarity-glow-legendary {
+    box-shadow: 0 0 25px rgba(255, 215, 0, 0.7);
+}
+
+.rarity-glow-mythic {
+    box-shadow: 0 0 30px rgba(255, 0, 110, 0.8);
+}
+
+/* ================================================
+   アイテムカード
+================================================ */
+.item-card {
+    background: var(--dungeon-surface);
+    border: 2px solid var(--dungeon-border);
+    border-radius: var(--border-radius-md);
+    padding: 1rem;
+    margin-bottom: 1rem;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.item-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-lg);
+}
+
+.item-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+}
+
+.item-name {
+    font-family: var(--font-title);
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.item-rarity {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.625rem;
+    border-radius: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.item-description {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin-bottom: 0.75rem;
+    line-height: 1.5;
+}
+
+.item-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+}
+
+.item-stat {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 0.5rem;
+    border-radius: var(--border-radius-sm);
+    text-align: center;
+    border: 1px solid var(--dungeon-border);
+}
+
+.item-stat-label {
+    display: block;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.25rem;
+}
+
+.item-stat-value {
+    display: block;
+    font-family: var(--font-title);
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.item-stat-value.positive {
+    color: var(--accent-success);
+}
+
+.item-stat-value.negative {
+    color: var(--accent-danger);
+}
+
+/* ================================================
+   装備スロット
+================================================ */
+.equipment-slot {
+    background: var(--dungeon-bg);
+    border: 2px dashed var(--dungeon-border);
+    border-radius: var(--border-radius-md);
+    padding: 1.5rem;
+    text-align: center;
+    transition: all 0.3s ease;
+    min-height: 120px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.equipment-slot.equipped {
+    border-style: solid;
+    border-color: var(--accent-magic);
+    background: rgba(157, 78, 221, 0.05);
+}
+
+.equipment-slot:hover {
+    border-color: var(--accent-gold);
+    background: rgba(255, 215, 0, 0.05);
+}
+
+.equipment-slot-icon {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    opacity: 0.3;
+}
+
+.equipment-slot.equipped .equipment-slot-icon {
+    opacity: 1;
+}
+
+.equipment-slot-label {
+    font-family: var(--font-title);
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* ================================================
+   プレイヤーステータス表示
+================================================ */
+.player-status {
+    background: var(--gradient-dungeon);
+    border: 2px solid var(--dungeon-border);
+    border-radius: var(--border-radius-lg);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: var(--shadow-lg);
+}
+
+.player-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid var(--dungeon-border);
+}
+
+.player-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    border: 3px solid var(--accent-gold);
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+}
+
+.player-info {
+    flex: 1;
+}
+
+.player-name {
+    font-family: var(--font-title);
+    font-size: 1.5rem;
+    margin: 0 0 0.25rem 0;
+    color: var(--accent-gold);
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+}
+
+.player-level {
+    font-family: var(--font-title);
+    font-size: 1rem;
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+.player-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.player-stat-box {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--dungeon-border);
+    border-radius: var(--border-radius-sm);
+    padding: 0.75rem;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.player-stat-box:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: var(--accent-magic);
+}
+
+.player-stat-box-label {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.5rem;
+}
+
+.player-stat-box-value {
+    display: block;
+    font-family: var(--font-title);
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+/* ステータスアイコン付き */
+.player-stat-box-value.hp {
+    color: var(--accent-danger);
+}
+
+.player-stat-box-value.mp {
+    color: var(--accent-magic);
+}
+
+.player-stat-box-value.atk {
+    color: var(--accent-gold);
+}
+
+.player-stat-box-value.def {
+    color: var(--accent-success);
+}
+
+/* ================================================
+   インベントリグリッド
+================================================ */
+.inventory-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 0.75rem;
+    margin-top: 1rem;
+}
+
+.inventory-item {
+    aspect-ratio: 1;
+    background: var(--dungeon-bg);
+    border: 2px solid var(--dungeon-border);
+    border-radius: var(--border-radius-sm);
+    padding: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.inventory-item:hover {
+    transform: scale(1.05);
+    z-index: 10;
+}
+
+.inventory-item-icon {
+    font-size: 2rem;
+    margin-bottom: 0.25rem;
+}
+
+.inventory-item-name {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    line-height: 1.2;
+    word-break: break-word;
+}
+
+.inventory-item-empty {
+    opacity: 0.3;
+    cursor: default;
+    border-style: dashed;
+}
+
+.inventory-item-empty:hover {
+    transform: none;
+}
+
+/* ================================================
+   トレードカード
+================================================ */
+.trade-card {
+    background: var(--dungeon-surface);
+    border: 2px solid var(--dungeon-border);
+    border-radius: var(--border-radius-md);
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+    transition: all 0.3s ease;
+}
+
+.trade-card:hover {
+    border-color: var(--accent-magic);
+    box-shadow: var(--shadow-lg), 0 0 20px rgba(157, 78, 221, 0.3);
+}
+
+.trade-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+}
+
+.trade-participants {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    font-family: var(--font-title);
+    color: var(--text-primary);
+}
+
+.trade-arrow {
+    color: var(--accent-magic);
+    font-size: 1.2rem;
+}
+
+.trade-status {
+    padding: 0.375rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.trade-status.pending {
+    background: rgba(255, 215, 0, 0.2);
+    color: var(--accent-gold);
+    border: 1px solid var(--accent-gold);
+}
+
+.trade-status.approved {
+    background: rgba(6, 255, 165, 0.2);
+    color: var(--accent-success);
+    border: 1px solid var(--accent-success);
+}
+
+.trade-status.rejected {
+    background: rgba(239, 35, 60, 0.2);
+    color: var(--accent-danger);
+    border: 1px solid var(--accent-danger);
+}
+
+/* ================================================
+   レスポンシブ調整
+================================================ */
+@media (max-width: 768px) {
+    .player-stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .inventory-grid {
+        grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    }
+    
+    .item-stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 480px) {
+    .player-header {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .player-avatar {
+        width: 60px;
+        height: 60px;
+    }
+    
+    .player-stats-grid {
+        grid-template-columns: 1fr;
+    }
+}
